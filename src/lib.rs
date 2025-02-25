@@ -24,3 +24,38 @@ fn test_strlen(#[case] input: &std::ffi::CStr, #[case] expected_len: usize) {
 		assert_eq!(libc_len, my_len, "comparison to libc strlen failed");
 	}
 }
+
+#[test]
+fn test_strlen_null_segfaults() {
+	use nix::sys::signal::Signal;
+	use nix::unistd::{ForkResult, fork};
+	// Fork process so the segfault doesn't kill the test runner
+	match unsafe { fork() } {
+		Ok(ForkResult::Parent { child }) => {
+			// Parent process waits for child
+			let wait_status = nix::sys::wait::waitpid(child, None).expect("waitpid failed");
+
+			// Check if child terminated by segmentation fault
+			if let nix::sys::wait::WaitStatus::Signaled(_, signal, _) = wait_status {
+				assert_eq!(
+					signal,
+					Signal::SIGSEGV,
+					"Expected SIGSEGV from null pointer"
+				);
+			} else {
+				panic!("Child didn't receive segfault as expected");
+			}
+		}
+
+		Ok(ForkResult::Child) => {
+			// Child process calls the function with NULL
+			unsafe {
+				let _ = crate::strlen(std::ptr::null());
+				// If we reach here, there was no segfault
+				libc::exit(0);
+			};
+		}
+
+		Err(e) => panic!("Fork failed: {}", e),
+	}
+}
