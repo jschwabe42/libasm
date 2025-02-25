@@ -1,0 +1,19 @@
+strlen:
+	sub     sp, sp, #32
+	str     x0, [sp, 8]
+	str     xzr, [sp, 24]
+	b       1f
+2:
+	ldr     x0, [sp, 24]
+	add     x0, x0, 1
+	str     x0, [sp, 24]
+1:
+	ldr     x1, [sp, 8]
+	ldr     x0, [sp, 24]
+	add     x0, x1, x0
+	ldrb    w0, [x0]
+	cmp     w0, 0
+	bne     2b
+	ldr     x0, [sp, 24]
+	add     sp, sp, 32
+	ret
