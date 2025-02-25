@@ -59,3 +59,12 @@ fn test_strlen_null_segfaults() {
 		Err(e) => panic!("Fork failed: {}", e),
 	}
 }
+
+#[test]
+/// run `nasm -f elf64 strlen.s -o strlen.o`
+fn test_nasm_compiles() {
+	std::process::Command::new("nasm")
+		.args(&["-f", "elf64", "asm/nasm/strlen.s", "-o", "asm/nasm/strlen.o"])
+		.status()
+		.expect("Failed to compile nasm file");
+}
