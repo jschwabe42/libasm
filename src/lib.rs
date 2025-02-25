@@ -6,7 +6,7 @@ use core::arch::global_asm;
 global_asm!(include_str!("../asm/arm/strlen.S"));
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 global_asm!(
-	// include_str!("../asm/x86/strlen.S")
+	include_str!("../asm/x86/strlen.S")
 );
 unsafe extern "C" {
 	fn strlen(str: *const u8) -> usize;

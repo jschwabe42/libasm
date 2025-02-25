@@ -1,12 +1,12 @@
 strlen:
 	sub     sp, sp, #32
-	str     x0, [sp, 8]
+	str     x0, [sp, 8] /* store pointer on stack */
 	str     xzr, [sp, 24]
 	b       1f
 2:
-	ldr     x0, [sp, 24]
+	ldr     x0, [sp, 24] /* get counter from stack */
 	add     x0, x0, 1
-	str     x0, [sp, 24]
+	str     x0, [sp, 24] /* put it back */
 1:
 	ldr     x1, [sp, 8]
 	ldr     x0, [sp, 24]
