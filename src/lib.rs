@@ -1,4 +1,5 @@
 use core::arch::global_asm;
+mod atoi_base;
 
 // Cargo will rebuild the file on change
 // global_asm!("") /* or combination with include_str!(relative to src dir) */
@@ -8,6 +9,8 @@ global_asm!(include_str!("../asm/arm/strlen.S"));
 global_asm!(
 	include_str!("../asm/x86/strlen.S")
 );
+
+#[allow(dead_code)]
 unsafe extern "C" {
 	fn strlen(str: *const u8) -> usize;
 }
