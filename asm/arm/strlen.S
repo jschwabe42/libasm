@@ -1,4 +1,6 @@
-strlen:
+.global _my_strlen
+
+_my_strlen:
 	sub     sp, sp, #32
 	str     x0, [sp, 8] /* store pointer on stack */
 	str     xzr, [sp, 24]
