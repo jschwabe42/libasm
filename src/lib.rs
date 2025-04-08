@@ -1,18 +1,10 @@
-use core::arch::global_asm;
 mod atoi_base;
-
-// Cargo will rebuild the file on change
-// global_asm!("") /* or combination with include_str!(relative to src dir) */
-#[cfg(any(target_arch = "aarch64", target_arch = "arm"))]
-global_asm!(include_str!("../asm/arm/strlen.S"));
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-global_asm!(
-	include_str!("../asm/x86/strlen.S")
-);
+mod inline_arm64;
 
 #[allow(dead_code)]
+#[link(name = "asm", kind = "static")]
 unsafe extern "C" {
-	fn strlen(str: *const u8) -> usize;
+	fn ft_strlen(str: *const u8) -> usize;
 }
 
 #[rstest::rstest]
@@ -22,7 +14,12 @@ unsafe extern "C" {
 fn test_strlen(#[case] input: &std::ffi::CStr, #[case] expected_len: usize) {
 	unsafe {
 		let libc_len = libc::strlen(input.as_ptr().cast());
-		let my_len = crate::strlen(input.as_ptr().cast());
+		#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+		let my_len = crate::ft_strlen(input.as_ptr().cast());
+		#[cfg(any(target_arch = "aarch64", target_arch = "arm"))]
+		let my_len = crate::inline_arm64::strlen(input.as_ptr().cast());
+		#[cfg(any(target_arch = "aarch64", target_arch = "arm"))]
+		eprintln!("using arm64 inlined version!");
 		assert_eq!(libc_len, expected_len, "sanity check");
 		assert_eq!(libc_len, my_len, "comparison to libc strlen failed");
 	}
@@ -30,44 +27,28 @@ fn test_strlen(#[case] input: &std::ffi::CStr, #[case] expected_len: usize) {
 
 #[test]
 fn test_strlen_null_segfaults() {
-	use nix::sys::signal::Signal;
-	use nix::unistd::{ForkResult, fork};
-	// Fork process so the segfault doesn't kill the test runner
-	match unsafe { fork() } {
-		Ok(ForkResult::Parent { child }) => {
-			// Parent process waits for child
-			let wait_status = nix::sys::wait::waitpid(child, None).expect("waitpid failed");
-
-			// Check if child terminated by segmentation fault
-			if let nix::sys::wait::WaitStatus::Signaled(_, signal, _) = wait_status {
-				assert_eq!(
-					signal,
-					Signal::SIGSEGV,
-					"Expected SIGSEGV from null pointer"
-				);
-			} else {
-				panic!("Child didn't receive segfault as expected");
-			}
-		}
-
-		Ok(ForkResult::Child) => {
-			// Child process calls the function with NULL
-			unsafe {
-				let _ = crate::strlen(std::ptr::null());
-				// If we reach here, there was no segfault
-				libc::exit(0);
-			};
-		}
-
-		Err(e) => panic!("Fork failed: {}", e),
+	use mem_isolate::{
+		MemIsolateError, errors::CallableStatusUnknownError, execute_in_isolated_process,
+	};
+	let libc_result = execute_in_isolated_process(|| unsafe { libc::strlen(std::ptr::null()) });
+	#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+	let my_result = execute_in_isolated_process(|| unsafe { crate::ft_strlen(std::ptr::null()) });
+	#[cfg(any(target_arch = "aarch64", target_arch = "arm"))]
+	let my_result =
+		execute_in_isolated_process(|| unsafe { crate::inline_arm64::strlen(std::ptr::null()) });
+	#[cfg(any(target_arch = "aarch64", target_arch = "arm"))]
+	eprintln!("using arm64 inlined version!");
+	for result in [libc_result, my_result] {
+		assert!(
+			result.is_err_and(|err| {
+				matches!(
+					err,
+					MemIsolateError::CallableStatusUnknown(
+						CallableStatusUnknownError::ChildProcessKilledBySignal(11)
+					)
+				)
+			}),
+			"expected segfault with null input"
+		)
 	}
-}
-
-#[test]
-/// run `nasm -f elf64 strlen.s -o strlen.o`
-fn test_nasm_compiles() {
-	std::process::Command::new("nasm")
-		.args(&["-f", "elf64", "asm/nasm/strlen.s", "-o", "asm/nasm/strlen.o"])
-		.status()
-		.expect("Failed to compile nasm file");
 }

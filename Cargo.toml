@@ -2,8 +2,11 @@
 name = "libasm"
 version = "0.1.0"
 edition = "2024"
+# enable build.rs
+build = "build.rs"
 
 [dependencies]
 libc = "0.2.170"
+mem-isolate = "0.1.3"
 nix = { version = "0.29.0", features = ["process"] }
 rstest = "0.24.0"
