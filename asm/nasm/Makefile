@@ -1,7 +1,5 @@
 NAME = libasm.a
-
-SRC = strlen strcmp
-
+SRC = strlen strcmp strcpy
 ASM = $(foreach src,$(SRC),$(src)/ft_$(src).s)
 OBJ = $(foreach src,$(SRC),$(src)/ft_$(src).o)
 M_OBJ = $(foreach src,$(SRC),$(src)/main.o)
