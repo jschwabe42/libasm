@@ -3,14 +3,19 @@ global _ft_strcpy
 
 ; input in rdi, rsi
 _ft_strcpy:
-	xor rax, rax
+	; save dest (rdi) on stack
+	push rdi
 .loop:
-	; test rsi for nul terminator
-	; otherwise dst[x] = src[x]
-	; movzx [rdi + rax], [rsi + rax]
+	mov al, [rsi]
+	mov [rdi], al
+	; test rdi for nul terminator (after assignment/termination)
+	test al, al
+	je .done
+	inc rsi
+	inc rdi
+	; otherwise next iteration
 	jmp .loop
-.terminate:
-	; dst[x] = 0 if src[x] == 0
 .done:
-	; return ptr to rdi
+	; return ptr to rdi using rax (restore rdi from stack)
+	pop rax
 	ret

@@ -46,6 +46,12 @@ RDI, RSI, RDX, RCX, R8, R9
 ## initialize variables
 - initialize `mov rax, 0` (gets optimized into) `xor rax, rax` for performance
 - `test al, al` is often preferred over `cmp al, 0`
+- `inc rsi` shorter than `add rsi, 1`
+```asm
+# copy index from rsi into rdi: 
+mov al, [rsi]
+mov [rdi], al
+```
 ## local variables & stack
 While it is possible to
 make space on the stack as needed in a function body, it is generally more efficient to allocate
