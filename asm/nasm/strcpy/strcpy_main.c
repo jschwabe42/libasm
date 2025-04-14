@@ -58,13 +58,9 @@ int main()
 		abort();
 	}
 	free(libc_bigger);
-	// char *my_sigbus = "\0";
-	// char my_sigill[1];
 	char my_big_buf[254];
-	// char my_small_buf[15];
 	char my_sufficient_buf[16];
 	char *my_bigger = strdup("somebiggerthing");
-
 	memset(&my_big_buf, '1', 254);
 	ft_strcpy(my_big_buf, my_bigger);
 	printf("%s\n", my_big_buf);
@@ -74,22 +70,13 @@ int main()
 	ft_strcpy(my_sufficient_buf, my_bigger);
 	// strings have the same contents
 	assert(strncmp(my_sufficient_buf, my_bigger, sizeof(my_sufficient_buf)) == 0);
-	// @audit these act weird/non-deterministic: test from rust with isolation
-	// signal(SIGILL, signal_handler_ill);
-	// if (setjmp(jump_buffer) == 0)
-	// {
+	//	--- DANGER! ---
+	// char *my_sigbus = "\0";
+	// char my_sigill[1];
+	// char my_small_buf[15];
 	// 	ft_strcpy(my_small_buf, my_bigger);
 	// 	ft_strcpy(my_sigill, my_bigger);
-	// 	fprintf(stderr, "ft_strcpy did not sigill!\n");
-	// 	abort();
-	// }
-	// signal(SIGBUS, signal_handler_bus);
-	// if (setjmp(jump_buffer) == 0)
-	// {
 	// 	ft_strcpy(my_sigbus, my_bigger);
-	// 	fprintf(stderr, "ft_strcpy did not sigbus!\n");
-	// 	abort();
-	// }
 	free(my_bigger);
 	return (0);
 }
