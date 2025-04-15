@@ -76,3 +76,30 @@ the stack as well.
 pointer. That is, arguments are pushed on in right-to-left order when applicable.
 - Local variables will be stored in the space allocated in the function prologue, when some
 amount is subtracted from %rsp. The organization of these is up to the programmer.
+
+## syscalls
+___error returns pointer into rax, we need to store if we want to keep the values located there (e.g. RDX)
+### macos
+`0x2000000` + syscall number (4 in case of write)
+
+on failure:
+- carry flag (CF) is set and **negative** of the error code is set in RAX
+1. Get the error code (from syscall or hardcoded)
+2. Get the pointer to errno via ___error
+3. Store the error code at that location
+4. Return -1
+
+```asm
+.error_from_syscall:
+	push rbp
+	mov rbp, rsp
+	
+	neg rax                  ; Negate the error code to get positive value
+	mov rdx, rax             ; Move error code to rdx/temporary register
+	call ___error            ; Get pointer to errno (overwrite rax with errno)
+	mov [rax], edx           ; Set errno
+	
+	pop rbp
+	mov rax, -1              ; Return -1 to indicate error
+	ret
+```
