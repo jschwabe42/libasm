@@ -33,6 +33,12 @@ dirmake:
 # Clean up compiled files
 clean:
 	rm -rf build
+	for obj in $(OBJ) $(M_OBJ); do \
+		rm -f $$obj; \
+	done
+	for src in $(SRC); do \
+		rm -f $$src/test_$$src.out; \
+	done
 
 # Clean up compiled files and the library
 fclean: clean
