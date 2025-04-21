@@ -2,3 +2,6 @@
 *.o
 *.a
 *.out
+*.pdf
+stuff.md
+*.txt
