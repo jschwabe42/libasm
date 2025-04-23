@@ -18,12 +18,15 @@ _ft_strdup:
 	call _malloc
 	test rax, rax
 	jz .error_malloc
-	; provide dest/allocation, input ptr to strcpy
-	; @todo
+	mov rdi, rax ; provide dest: new allocation
+	pop rsi ; pop input as second param
+	call _ft_strcpy
 	ret
 .error_malloc:
+	pop rdx ; pop input ptr to restore stack
 	; handle null return from malloc (error)
-	; @todo set error
+	call ___error
+	mov dword [rax], 12 ; ENOMEM
 	; return null
 	xor rax, rax
 	ret
