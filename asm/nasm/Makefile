@@ -1,11 +1,13 @@
 NAME = libasm.a
 SRC = strlen strcmp strcpy write
+B_SRC = atoi_base
 ASM = $(foreach src,$(SRC),$(src)/ft_$(src).s)
 OBJ = $(foreach src,$(SRC),$(src)/ft_$(src).o)
 M_OBJ = $(foreach src,$(SRC),$(src)/main.o)
 
 all: $(NAME)
-
+bonus:
+	$(MAKE) SRC="$(SRC) $(B_SRC)" all
 # build the library
 $(NAME): $(OBJ)
 	ar rcs $(NAME) $(OBJ)
@@ -24,6 +26,9 @@ test_mains: $(OBJ) dirmake
 		echo "Testing $$src"; \
 		(cd $$src && bash ./build_$$src.sh && ./test_$$src.out); \
 	done
+
+test_bonus_mains:
+	$(MAKE) SRC="$(B_SRC)" test_mains
 
 dirmake:
 	for src in $(SRC); do \
@@ -47,4 +52,4 @@ fclean: clean
 # Rebuild everything
 re: fclean all
 
-.PHONY: all clean fclean re dirmake
+.PHONY: all clean fclean re dirmake bonus

@@ -1,0 +1,86 @@
+#include <assert.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
+extern int ft_atoi_base(char *str, char *base);
+
+void test_decimal() {
+	printf("Testing decimal conversions...\n");
+	assert(ft_atoi_base("    123490", "0123456789") == 123490);
+	assert(ft_atoi_base("    +123490", "0123456789") == 123490);
+	assert(ft_atoi_base("-123490", "0123456789") == -123490);
+	assert(ft_atoi_base("   -123490", "0123456789") == -123490);
+	assert(ft_atoi_base("123490", "0123456789") == 123490);
+	printf("✅ Decimal tests passed\n");
+}
+
+void test_hex() {
+	printf("Testing hex conversions...\n");
+	assert(ft_atoi_base("1e262", "0123456789abcdef") == 123490);
+	assert(ft_atoi_base("1E262", "0123456789ABCDEF") == 123490);
+	printf("✅ Hex tests passed\n");
+}
+
+void test_invalid_inputs() {
+	printf("Testing invalid inputs...\n");
+	// Empty string
+	assert(ft_atoi_base("", "0123456789") == 0);
+	// Invalid characters
+	assert(ft_atoi_base("123abc", "0123456789") == 0);
+	assert(ft_atoi_base("xyz", "0123456789") == 0);
+	// Invalid base
+	assert(ft_atoi_base("123", "0") == 0);
+	assert(ft_atoi_base("123", "0") == 0);
+	assert(ft_atoi_base("123", "0\"-_456789abcdefghijklmnopqrstuvwxyz/") == 0);
+	printf("✅ Invalid input tests passed\n");
+}
+
+void test_edge_cases() {
+	printf("Testing edge cases...\n");
+	// Single digit
+	assert(ft_atoi_base("0", "0123456789") == 0);
+	assert(ft_atoi_base("9", "0123456789") == 9);
+	// Leading zeros
+	assert(ft_atoi_base("000123", "0123456789") == 123);
+	printf("✅ Edge case tests passed\n");
+}
+
+void test_custom_bases() {
+	printf("Testing various bases...\n");
+	// Binary
+	assert(ft_atoi_base("1101", "01") == 13);
+	assert(ft_atoi_base("-1101", "01") == -13);
+	// Octal
+	assert(ft_atoi_base("17", "01234567") == 15);
+	assert(ft_atoi_base("-17", "01234567") == -15);
+	// Base 3
+	assert(ft_atoi_base("102", "012") == 11);
+	assert(ft_atoi_base("-102", "012") == -11);
+	printf("✅ Custom base tests passed\n");
+}
+
+void test_whitespace_handling() {
+	printf("Testing whitespace handling...\n");
+	// Leading whitespace
+	assert(ft_atoi_base("\t\n 123", "0123456789") == 123);
+	assert(ft_atoi_base("\t\n -123", "0123456789") == -123);
+	// Trailing whitespace should fail or stop parsing
+	assert(ft_atoi_base("\t\n 123 \n\t", "0123456789") == 0);
+	assert(ft_atoi_base("\t\n -123 \n\t", "0123456789") == 0);
+	printf("✅ Whitespace tests passed\n");
+}
+
+int main() {
+	printf("Testing ft_atoi_base...\n\n");
+	
+	test_decimal();
+	test_hex();
+	test_invalid_inputs();
+	test_edge_cases();
+	test_custom_bases();
+	test_whitespace_handling();
+	
+	printf("\nAll tests passed! ✅\n");
+	return 0;
+}
