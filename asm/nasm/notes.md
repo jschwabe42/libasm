@@ -52,6 +52,22 @@ RDI, RSI, RDX, RCX, R8, R9
 mov al, [rsi]
 mov [rdi], al
 ```
+- `mov rax, [rdi]` dereference rdi into rax, `call rdi` for function pointers (assuming input & output registers set up)
+- interact with struct: 
+    ```c
+    /* 8 bytes = sizeof(each field) */
+    struct align {
+        void *one;
+        void *other;
+    }
+    ```
+    ```asm
+    ; assuming rax contains align ptr, init fields into rdi, rsi
+    ; rdi = align->one
+    mov rdi, [rax]
+    ; rsi = align->other
+    mov rsi, [rax + 8] ; field offset!
+    ```
 ## local variables & stack
 While it is possible to
 make space on the stack as needed in a function body, it is generally more efficient to allocate
