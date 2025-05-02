@@ -39,22 +39,22 @@ check_base:
 	cmp r8, rsi ; compare to length
 	jge .return_ok
 	; char c: outer character position
-	mov al, [rdi + r8]
+	movzx rax, byte [rdi + r8]
 	cmp al, 0x2B ; '+'
 	je .return_err
 	cmp al, 0x2D ; '-'
 	je .return_err
-	push al
+	push rax
 	; START: check isspace
 	push rdi
 	push rsi
-	movzx dil, al
+	mov rdi, rax
 	call _my_isspace
 	pop rsi
 	pop rdi
 	cmp rax, 1
 	je .return_err
-	pop al
+	pop rax
 	; END: check isspace
 	; check c
 	; nested loop
@@ -66,7 +66,7 @@ check_base:
 	cmp r9, rsi
 	; r9 >= rsi
 	jge .next_outer
-	mov cl, [rdi + r9]
+	mov rcx, [rdi + r9]
 	cmp cl, al
 	je .return_err
 	jmp .next_inner
@@ -90,15 +90,51 @@ _ft_atoi_base:
 	call _ft_strlen
 	cmp rax, 2
 	jl .ret_zero ; base is less than 2 characters
+	push rsi
 	mov rsi, rax
 	; rdi: base, rsi: length 
 	call check_base
-	test rax, 0
+	test rax, rax
 	jne .ret_zero ; base checks failed
 	; @todo implement checks: str
+	; skip whitespace prefixes
+	; pop rsi
+	; pop rdi
+	push rax ; length
+	mov rax, [rsp + 8] ; access input (str)
+.skip_ws:
+	movzx rdi, byte [rax] ; byte at current address index
+	call _my_isspace
+	test rax, rax
+	jz .check_prefix ; zero: no more prefix
+	inc rax
+	jmp .skip_ws
+.check_prefix:
 	; @follow-up return on error
 	; @todo implement conversion
-
+	xor rcx, rcx
+	movzx rdi, byte [rax]
+	cmp dil, 0x2D ; '-'
+	jne .check_plus
+	;path A: sure to be negative at this point
+	mov cl, 1 ; sign flag
+	inc rax
+.check_plus:
+	;path B: positive or no prefix
+	cmp dil, 0x2B ; '+'
+	jne .start_conversion
+	inc rax
+	jmp .start_conversion
+.start_conversion:
+	mov rdi, rax ; str
+	pop rdi ; base_length
+	pop rsi ; base
+	push rcx ; sign
+	; call with str, base, base_len
+	; apply sign
+	cmp cl, 1
+.ret_sign:
+	; called if sign is 1 (cl)
 .ret_zero:
 	xor rax, rax
 	ret
