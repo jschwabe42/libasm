@@ -86,15 +86,17 @@ check_base:
 ; rdi, rsi, rdx call with str, base, base_len
 convert:
 	mov rcx, rdi ; save rdi (str)
-	xor r8, r8 ; initialize total (rax busy)
+	xor rax, rax ; initialize total (rax busy)
 .loop_convert_outer:
 	movzx rdi, byte [rcx]
 	test rdi, rdi
 	jz .do_return ; end of str!
+	push rax
 	call _my_isspace
 	; if space found (1) -> return 0
 	cmp rax, 1
 	je .ret_zero
+	pop rax
 	mov r9, -1 ; digit_value
 	xor r10, r10 ; inner loop counter
 	jmp .loop_inner
@@ -111,14 +113,14 @@ convert:
 	jmp .loop_sanity_check
 .loop_sanity_check:
 	cmp r9, -1
-	mov rax, r8
+	; mov rax, r8
 	jne .loop_outer_next
 	ret
 .loop_outer_next:
-	mov rax, r8
+	; mov rax, r8
 	mul rdx
 	add rax, r9
-	mov r8, rax
+	; mov r8, rax
 	; calculate result, put back into r8
 	inc rcx
 	jmp .loop_convert_outer
@@ -127,7 +129,7 @@ convert:
 	ret
 .do_return:
 	; put total into rax
-	mov rax, r8
+	; mov rax, r8
 	ret
 
 
