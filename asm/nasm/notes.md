@@ -68,6 +68,7 @@ mov [rdi], al
     ; rsi = align->other
     mov rsi, [rax + 8] ; field offset!
     ```
+- purge upper bits of rdi (keep only lowest byte) at end `movzx rdi, dil`
 ## local variables & stack
 While it is possible to
 make space on the stack as needed in a function body, it is generally more efficient to allocate

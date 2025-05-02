@@ -1,9 +1,11 @@
 #include <assert.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
 extern int ft_atoi_base(char *str, char *base);
+extern int my_isspace(int c);
 
 void test_decimal() {
 	printf("Testing decimal conversions...\n");
@@ -71,9 +73,18 @@ void test_whitespace_handling() {
 	printf("✅ Whitespace tests passed\n");
 }
 
+void test_isspace() {
+	for (int i = 0; i < 256; i++) {
+		// printf("'%c'\n", (char)i);
+		assert(my_isspace(i) == isspace(i));
+	}
+	printf("✅ isspace tests passed");
+}
+
 int main() {
 	printf("Testing ft_atoi_base...\n\n");
 	
+	test_isspace();
 	test_decimal();
 	test_hex();
 	test_invalid_inputs();
