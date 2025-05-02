@@ -16,11 +16,12 @@ extern ssize_t ft_write(int fildes, const void *buf, size_t nbyte);
 int main()
 {
 	char write_buf[153];
-	char	*wptr = &write_buf[0];
+	char *wptr = &write_buf[0];
 	memset(&write_buf[16], '\n', 153 - 16);
 	assert(ft_write(1, write_buf, 153) == 153);
 	char linechars[8] = "FUCK OFF";
-	for (int i = 0; i < 8; i++) {
+	for (int i = 0; i < 8; i++)
+	{
 		memset(wptr, linechars[i], 16);
 		wptr += 17;
 	}
@@ -30,7 +31,7 @@ int main()
 	assert(close(fildes) != -1);
 	assert(ft_write(1, write_buf, LONG_MAX + 1) == -1);
 	// assert(write(1, write_buf, LONG_MAX + 1) == -1);
-    fprintf(stderr, "Error: %s (errno: %d)\n", strerror(errno), errno);
+	fprintf(stderr, "Error: %s (errno: %d)\n", strerror(errno), errno);
 	printf("EINVAL = %d\n", EINVAL);
 	fprintf(stderr, "System error message: %s\n", sys_errlist[errno]);
 	perror("");
