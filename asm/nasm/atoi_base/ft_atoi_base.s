@@ -3,6 +3,7 @@ section .text
 extern _ft_strlen
 global _ft_atoi_base
 global _my_isspace
+global _check_base
 
 
 ; Whitespace characters in ASCII are:
@@ -29,34 +30,40 @@ _my_isspace:
 	mov rax, 1
 	ret
 
+; rdi: char byte - 1 on found
+check_plus_minus:
+	cmp dil, 0x2B ; '+'
+	je .yes
+	cmp dil, 0x2D ; '-'
+	je .yes
+	xor rax, rax
+	ret
+.yes:
+	mov rax, 1
+	ret
+
+; rdi: char byte
+check_non_pfx:
+	call check_plus_minus
+	test rax, rax
+	jnz .return ; rax != 0
+	call _my_isspace
+	ret
+.return:
+	ret
+
 ; rdi: base, rsi: length 
-check_base:
-	; @todo implement checks: base
-	; use r8, r9 for loop
-	; keep track of character position using al, cl
+_check_base:
 	xor r8, r8
+	mov rdx, rdi ; rdx: base
 .loop_outer:
 	cmp r8, rsi ; compare to length
 	jge .return_ok
 	; char c: outer character position
-	movzx rax, byte [rdi + r8]
-	cmp al, 0x2B ; '+'
-	je .return_err
-	cmp al, 0x2D ; '-'
-	je .return_err
-	push rax
-	; START: check isspace
-	push rdi
-	push rsi
-	mov rdi, rax
-	call _my_isspace
-	pop rsi
-	pop rdi
+	movzx rdi, byte [rdx + r8]
+	call check_non_pfx ; check c
 	cmp rax, 1
 	je .return_err
-	pop rax
-	; END: check isspace
-	; check c
 	; nested loop
 	mov r9, r8
 	inc r9
@@ -66,8 +73,8 @@ check_base:
 	cmp r9, rsi
 	; r9 >= rsi
 	jge .next_outer
-	movzx rcx, byte [rdi + r9]
-	cmp cl, al
+	movzx rcx, byte [rdx + r9]
+	cmp cl, dil
 	je .return_err
 	jmp .next_inner
 .next_inner:
@@ -125,7 +132,8 @@ convert:
 	inc rcx
 	jmp .loop_convert_outer
 .ret_zero:
-	xor rax, rax
+	; xor rax, rax
+	; mov rax, 1
 	ret
 .do_return:
 	; put total into rax
@@ -150,11 +158,15 @@ _ft_atoi_base:
 	push rax ; length
 	mov rsi, rax
 	; rdi: base, rsi: length 
-	call check_base
+	call _check_base
 	test rax, rax
 	jnz .ret_zero ; base checks failed
 	; @todo implement checks: str
 	; skip whitespace prefixes
+	; [rsp]      -> length (from push rax)
+	; [rsp+8]    -> base (from push rsi)
+	; [rsp+16]   -> rdi (original str pointer)
+	; [rsp+24]   -> rbx (saved rbx value)
 	mov rbx, [rsp + 16] ; access input (str)
 .skip_ws:
 	movzx rdi, byte [rbx] ; byte at current address index
@@ -164,8 +176,6 @@ _ft_atoi_base:
 	inc rbx
 	jmp .skip_ws
 .check_prefix:
-	; @follow-up return on error
-	; @todo implement conversion
 	xor rcx, rcx
 	movzx rdi, byte [rbx]
 	cmp dil, 0x2D ; '-'
@@ -189,17 +199,20 @@ _ft_atoi_base:
 	call convert
 	; apply sign
 	pop rcx
-	cmp cl, 1
 	pop rbx
+	cmp cl, 1
 	je .ret_sign
-	; leave
+	mov rax, 1
 	ret
+	; leave
 .ret_sign:
 	; called if sign is 1 (cl)
+	; mov rax, 1
 	neg rax
 	; leave
 	ret
 .ret_zero:
 	xor rax, rax
+	; mov rax, 1
 	; leave
 	ret

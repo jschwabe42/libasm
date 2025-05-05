@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 extern int ft_atoi_base(char *str, char *base);
+extern int check_base(char *base, size_t length);
 extern int my_isspace(int c);
 
 void test_decimal() {
@@ -89,13 +90,26 @@ void test_isspace() {
 int main() {
 	printf("Testing ft_atoi_base...\n\n");
 	
+	// START: base sanity checks!
+	assert(check_base("  a", 3) == 1);
+	assert(check_base("-a", 3) == 1);
+	assert(check_base("+a", 3) == 1);
+	assert(check_base("01", 2) == 0);
+	assert(check_base("+01", 2) == 1);
+	assert(check_base("-01", 2) == 1);
+	assert(check_base(" 01", 2) == 1);
+	assert(check_base(" -01", 2) == 1);
+	assert(check_base(" +01", 2) == 1);
+	assert(check_base(" + 01", 2) == 1);
+	assert(check_base(" 3 01", 2) == 1);
+	// END: base sanity checks!
 	test_isspace();
+	test_decimal();
 	test_hex();
 	test_invalid_inputs();
 	test_edge_cases();
 	test_custom_bases();
 	test_whitespace_handling();
-	test_decimal();
 	
 	printf("\nAll tests passed! ✅\n");
 	return 0;
