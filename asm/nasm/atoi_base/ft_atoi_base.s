@@ -54,7 +54,9 @@ check_non_pfx:
 
 ; rdi: base, rsi: length 
 _check_base:
+	push r8
 	xor r8, r8
+	push rdx
 	mov rdx, rdi ; rdx: base
 .loop_outer:
 	cmp r8, rsi ; compare to length
@@ -80,9 +82,13 @@ _check_base:
 	inc r8
 	jmp .loop_outer
 .return_ok:
+	pop rdx
+	pop r8
 	xor rax, rax
 	ret
 .return_err:
+	pop rdx
+	pop r8
 	mov rax, 1
 	ret
 
@@ -93,8 +99,8 @@ convert:
 	xor rax, rax ; initialize total (rax busy)
 .loop_convert_outer:
 	movzx rdi, byte [rcx]
-	cmp rdi, 0
-	je .do_return ; end of str!
+	test rdi, rdi
+	jz .do_return ; end of str!
 	push rax
 	call _my_isspace
 	cmp rax, 1
@@ -115,14 +121,13 @@ convert:
 .inner_base_found:
 	mov r9, r10 ; digit_value becomes i
 	jmp .loop_sanity_check
-.loop_sanity_check:
-	cmp r9, -1 ; check digit_value has changed
-	je .insanity
-	jmp .loop_outer_next
 .insanity:
 	pop r8 ; sign value
 	imul rax, r8
 	ret
+.loop_sanity_check:
+	cmp r9, -1 ; check digit_value has changed
+	je .insanity
 .loop_outer_next:
 	imul rax, rdx ; prevent issues with rdx when using `mul` instead
 	add rax, r9
@@ -143,21 +148,22 @@ convert:
 	ret
 
 ; rdi: str, rsi: base
-; @audit leave causing stack corruption
 _ft_atoi_base:
 	push rdi
+.base_len:
 	mov rdi, rsi
 	call _ft_strlen
 	cmp rax, 2
 	jl .ret_zero_one ; base is less than 2 characters
+.validate_base:
 	push rsi ; base
-	push rax ; length
 	mov rsi, rax
+	mov rdx, rax
 	; rdi: base, rsi: length 
 	call _check_base
 	cmp rax, 0
 	jne .ret_zero_two ; base checks failed
-	mov r8, [rsp + 16] ; access input (str)
+	mov r8, [rsp + 8] ; access input (str)
 .skip_ws:
 	movzx rdi, byte [r8] ; byte at current address index
 	call _my_isspace
@@ -181,7 +187,7 @@ _ft_atoi_base:
 	inc r8
 .start_conversion:
 	mov rdi, r8 ; &str[..]
-	pop rdx ; base_length
+	; pop rdx ; base_length
 	pop rsi ; base
 	; call with str, base, base_len, sign
 	call convert
@@ -192,7 +198,7 @@ _ft_atoi_base:
 	xor rax, rax
 	ret
 .ret_zero_two:
-	pop rax   ; Pop the length first
+	; pop rax   ; Pop the length first
 	pop rsi   ; Pop the base
 	pop rdi   ; Pop str
 	xor rax, rax
