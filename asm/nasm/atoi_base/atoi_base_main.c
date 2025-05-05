@@ -9,6 +9,8 @@ extern int my_isspace(int c);
 
 void test_decimal() {
 	printf("Testing decimal conversions...\n");
+	fprintf(stderr, "non-ws: %d\n", ft_atoi_base("123490", "0123456789"));
+	fprintf(stderr, "whitespace: %d\n", ft_atoi_base("    123490", "0123456789"));
 	assert(ft_atoi_base("    123490", "0123456789") == 123490);
 	assert(ft_atoi_base("    +123490", "0123456789") == 123490);
 	assert(ft_atoi_base("-123490", "0123456789") == -123490);
@@ -28,6 +30,9 @@ void test_invalid_inputs() {
 	printf("Testing invalid inputs...\n");
 	// Empty string
 	assert(ft_atoi_base("", "0123456789") == 0);
+	// should abort and not print! @audit
+	assert(ft_atoi_base("-0", "0123456789") == 1);
+	fprintf(stderr, "%d\n", ft_atoi_base("-0", "0123456789"));
 	// Invalid characters
 	assert(ft_atoi_base("123abc", "0123456789") == 0);
 	assert(ft_atoi_base("xyz", "0123456789") == 0);
@@ -74,10 +79,10 @@ void test_whitespace_handling() {
 }
 
 void test_isspace() {
-	// for (int i = 0; i < 256; i++) {
-	// 	// printf("'%c'\n", (char)i);
-	// 	assert(my_isspace(i) == isspace(i));
-	// }
+	for (int i = 0; i < 256; i++) {
+		// printf("'%c'\n", (char)i);
+		assert(my_isspace(i) == isspace(i));
+	}
 	printf("✅ isspace tests passed\n\n");
 }
 
@@ -85,12 +90,12 @@ int main() {
 	printf("Testing ft_atoi_base...\n\n");
 	
 	test_isspace();
-	test_decimal();
 	test_hex();
 	test_invalid_inputs();
 	test_edge_cases();
 	test_custom_bases();
 	test_whitespace_handling();
+	test_decimal();
 	
 	printf("\nAll tests passed! ✅\n");
 	return 0;

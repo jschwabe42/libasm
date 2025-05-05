@@ -66,7 +66,7 @@ check_base:
 	cmp r9, rsi
 	; r9 >= rsi
 	jge .next_outer
-	mov rcx, [rdi + r9]
+	movzx rcx, byte [rdi + r9]
 	cmp cl, al
 	je .return_err
 	jmp .next_inner
@@ -134,7 +134,12 @@ convert:
 
 
 ; rdi: str, rsi: base
+; @audit leave causing stack corruption
 _ft_atoi_base:
+	; start prologue
+	; push rbp
+	; mov rsp, rbp
+	; end prologue
 	push rbx
 	push rdi
 	mov rdi, rsi
@@ -185,14 +190,16 @@ _ft_atoi_base:
 	; apply sign
 	pop rcx
 	cmp cl, 1
+	pop rbx
 	je .ret_sign
-	leave
+	; leave
 	ret
 .ret_sign:
 	; called if sign is 1 (cl)
 	neg rax
-	leave
+	; leave
 	ret
 .ret_zero:
 	xor rax, rax
+	; leave
 	ret
