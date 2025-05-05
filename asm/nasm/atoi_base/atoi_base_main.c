@@ -34,14 +34,18 @@ void test_invalid_inputs() {
 	assert(ft_atoi_base("", "0123456789") == 0);
 	// should abort and not print! @audit
 	assert(ft_atoi_base("-0", "0123456789") == 0);
-	fprintf(stderr, "%d\n", ft_atoi_base("-0", "0123456789"));
+	// fprintf(stderr, "%d\n", ft_atoi_base("-0", "0123456789"));
 	// Invalid characters
 	assert(ft_atoi_base("123abc", "0123456789") == 0);
+	assert(ft_atoi_base("123abc", "0123456789abc") == 436851);
 	assert(ft_atoi_base("xyz", "0123456789") == 0);
+	fprintf(stderr, "%d\n", ft_atoi_base("xyz", "0123456789"));
 	// Invalid base
 	assert(ft_atoi_base("123", "0") == 0);
-	assert(ft_atoi_base("123", "0") == 0);
+	fprintf(stderr, "%d\n", ft_atoi_base("123", "0"));
+	fprintf(stderr, "segfaulting: %d\n", ft_atoi_base("123", "0\"-_456789abcdefghijklmnopqrstuvwxyz/"));
 	assert(ft_atoi_base("123", "0\"-_456789abcdefghijklmnopqrstuvwxyz/") == 0);
+	fprintf(stderr, "%d\n", ft_atoi_base("123", "0\"-_456789abcdefghijklmnopqrstuvwxyz/"));
 	printf("✅ Invalid input tests passed\n");
 }
 
@@ -72,11 +76,17 @@ void test_custom_bases() {
 void test_whitespace_handling() {
 	printf("Testing whitespace handling...\n");
 	// Leading whitespace
+	assert(ft_atoi_base(" 123", "0123456789") == 123);
+	printf("passed 1\n");
 	assert(ft_atoi_base("\t\n 123", "0123456789") == 123);
+	printf("passed 2\n");
 	assert(ft_atoi_base("\t\n -123", "0123456789") == -123);
+	printf("passed 3\n");
 	// Trailing whitespace should fail or stop parsing
 	assert(ft_atoi_base("\t\n 123 \n\t", "0123456789") == 0);
+	printf("passed 4\n");
 	assert(ft_atoi_base("\t\n -123 \n\t", "0123456789") == 0);
+	printf("passed 5\n");
 	printf("✅ Whitespace tests passed\n");
 }
 
@@ -85,6 +95,10 @@ void test_isspace() {
 		// printf("'%c'\n", (char)i);
 		assert(my_isspace(i) == isspace(i));
 	}
+	char i = '\t';
+	assert(my_isspace(i) == isspace(i));
+	i = '\n';
+	assert(my_isspace(i) == isspace(i));
 	printf("✅ isspace tests passed\n\n");
 }
 
@@ -107,11 +121,13 @@ int main() {
 	test_isspace();
 	test_decimal();
 	test_hex();
-	test_invalid_inputs();
+
 	test_edge_cases();
 	test_custom_bases();
+
 	test_whitespace_handling();
-	
+	test_invalid_inputs();
+
 	printf("\nAll tests passed! ✅\n");
 	return 0;
 }

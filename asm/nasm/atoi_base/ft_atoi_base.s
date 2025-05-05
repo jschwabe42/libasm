@@ -67,12 +67,12 @@ _check_base:
 	; nested loop
 	mov r9, r8 ; r9 = r8 + 1
 	inc r9
-	jmp .loop_inner
 .loop_inner:
 	cmp r9, rsi
-	jge .next_outer ; r9 >= rsi
+	je .next_outer ; r9 >= rsi
 	movzx rcx, byte [rdx + r9]
-	cmp cl, dil
+	movzx rdi, byte [rdx + r8]
+	cmp rcx, rdi
 	je .return_err
 	inc r9
 	jmp .loop_inner
@@ -86,14 +86,15 @@ _check_base:
 	mov rax, 1
 	ret
 
-; rdi, rsi, rdx call with str, base, base_len
+; rdi, rsi, rdx, rcx: call with str, base, base_len, sign
 convert:
+	push rcx
 	mov rcx, rdi ; save rdi (str)
 	xor rax, rax ; initialize total (rax busy)
 .loop_convert_outer:
 	movzx rdi, byte [rcx]
-	test rdi, rdi
-	jz .do_return ; end of str!
+	cmp rdi, 0
+	je .do_return ; end of str!
 	push rax
 	call _my_isspace
 	cmp rax, 1
@@ -103,7 +104,7 @@ convert:
 	xor r10, r10 ; inner loop counter
 .loop_inner:
 	cmp r10, rdx
-	jge .loop_sanity_check
+	je .loop_sanity_check
 	; run loop with comparison, assignment
 	movzx rdi, byte [rcx]
 	movzx r11, byte [rsi + r10]
@@ -113,18 +114,32 @@ convert:
 	jmp .loop_inner
 .inner_base_found:
 	mov r9, r10 ; digit_value becomes i
+	jmp .loop_sanity_check
 .loop_sanity_check:
 	cmp r9, -1 ; check digit_value has changed
-	je .do_return
+	je .insanity
+	jmp .loop_outer_next
+.insanity:
+	pop r8 ; sign value
+	imul rax, r8
+	ret
 .loop_outer_next:
 	imul rax, rdx ; prevent issues with rdx when using `mul` instead
 	add rax, r9
 	inc rcx
 	jmp .loop_convert_outer
 .ret_zero:
+	pop rax
+	pop rcx
 	xor rax, rax
 	ret
 .do_return:
+	pop r8
+	cmp r8, 1
+	je .sign
+	ret
+.sign:
+	neg rax
 	ret
 
 ; rdi: str, rsi: base
@@ -134,58 +149,51 @@ _ft_atoi_base:
 	mov rdi, rsi
 	call _ft_strlen
 	cmp rax, 2
-	jl .ret_zero ; base is less than 2 characters
+	jl .ret_zero_one ; base is less than 2 characters
 	push rsi ; base
 	push rax ; length
 	mov rsi, rax
 	; rdi: base, rsi: length 
 	call _check_base
-	test rax, rax
-	jnz .ret_zero ; base checks failed
+	cmp rax, 0
+	jne .ret_zero_two ; base checks failed
 	mov r8, [rsp + 16] ; access input (str)
 .skip_ws:
 	movzx rdi, byte [r8] ; byte at current address index
 	call _my_isspace
-	test rax, rax
-	jz .check_prefix ; zero: no more prefix
+	cmp rax, 1
+	jne .check_prefix ; zero: no more prefix
 	inc r8
 	jmp .skip_ws
 .check_prefix:
 	xor rcx, rcx
 	movzx rdi, byte [r8]
-	cmp dil, 0x2D ; '-'
+	cmp rdi, 0x2D ; '-'
 	jne .check_plus
 	;path A: sure to be negative at this point
-	mov cl, 1 ; sign flag
-	inc r8
-.check_plus:
-	;path B: positive or no prefix
-	cmp dil, 0x2B ; '+'
-	jne .start_conversion
+	mov rcx, 1 ; sign flag
 	inc r8
 	jmp .start_conversion
+.check_plus:
+	;path B: positive or no prefix
+	cmp rdi, 0x2B ; '+'
+	jne .start_conversion
+	inc r8
 .start_conversion:
 	mov rdi, r8 ; &str[..]
 	pop rdx ; base_length
 	pop rsi ; base
-	pop rax ; dump str from stack
-	push rcx ; sign
-	; call with str, base, base_len
+	; call with str, base, base_len, sign
 	call convert
-	; apply sign
-	pop rcx
-	cmp rcx, 1
-	je .ret_sign
-	; mov rax, 1
-	; leave
+	pop rdi ; dump str from stack
 	ret
-.ret_sign:
-	; called if sign is 1 (cl)
-	; mov rax, 1
-	neg rax
-	; leave
-	ret
-.ret_zero:
+.ret_zero_one:
+	pop rdi
 	xor rax, rax
-	; mov rax, 1
+	ret
+.ret_zero_two:
+	pop rax   ; Pop the length first
+	pop rsi   ; Pop the base
+	pop rdi   ; Pop str
+	xor rax, rax
 	ret
