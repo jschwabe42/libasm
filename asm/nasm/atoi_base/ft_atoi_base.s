@@ -96,20 +96,18 @@ convert:
 	jz .do_return ; end of str!
 	push rax
 	call _my_isspace
-	; if space found (1) -> return 0
 	cmp rax, 1
 	je .ret_zero
 	pop rax
 	mov r9, -1 ; digit_value
 	xor r10, r10 ; inner loop counter
-	jmp .loop_inner
 .loop_inner:
 	cmp r10, rdx
 	jge .loop_sanity_check
 	; run loop with comparison, assignment
 	movzx rdi, byte [rcx]
 	movzx r11, byte [rsi + r10]
-	cmp rdi, r11
+	cmp dil, r11b
 	je .inner_base_found
 	inc r10
 	jmp .loop_inner
@@ -117,35 +115,21 @@ convert:
 	mov r9, r10 ; digit_value becomes i
 .loop_sanity_check:
 	cmp r9, -1 ; check digit_value has changed
-	; mov rax, r8
-	jne .loop_outer_next
-	ret
+	je .do_return
 .loop_outer_next:
-	; mov rax, r8
-	mul rdx
+	imul rax, rdx ; prevent issues with rdx when using `mul` instead
 	add rax, r9
-	; mov r8, rax
-	; calculate result, put back into r8
 	inc rcx
 	jmp .loop_convert_outer
 .ret_zero:
 	xor rax, rax
-	; mov rax, 1
 	ret
 .do_return:
-	; put total into rax
-	; mov rax, r8
 	ret
-
 
 ; rdi: str, rsi: base
 ; @audit leave causing stack corruption
 _ft_atoi_base:
-	; start prologue
-	; push rbp
-	; mov rsp, rbp
-	; end prologue
-	push rbx
 	push rdi
 	mov rdi, rsi
 	call _ft_strlen
@@ -158,36 +142,30 @@ _ft_atoi_base:
 	call _check_base
 	test rax, rax
 	jnz .ret_zero ; base checks failed
-	; @todo implement checks: str
-	; skip whitespace prefixes
-	; [rsp]      -> length (from push rax)
-	; [rsp+8]    -> base (from push rsi)
-	; [rsp+16]   -> rdi (original str pointer)
-	; [rsp+24]   -> rbx (saved rbx value)
-	mov rbx, [rsp + 16] ; access input (str)
+	mov r8, [rsp + 16] ; access input (str)
 .skip_ws:
-	movzx rdi, byte [rbx] ; byte at current address index
+	movzx rdi, byte [r8] ; byte at current address index
 	call _my_isspace
 	test rax, rax
 	jz .check_prefix ; zero: no more prefix
-	inc rbx
+	inc r8
 	jmp .skip_ws
 .check_prefix:
 	xor rcx, rcx
-	movzx rdi, byte [rbx]
+	movzx rdi, byte [r8]
 	cmp dil, 0x2D ; '-'
 	jne .check_plus
 	;path A: sure to be negative at this point
 	mov cl, 1 ; sign flag
-	inc rbx
+	inc r8
 .check_plus:
 	;path B: positive or no prefix
 	cmp dil, 0x2B ; '+'
 	jne .start_conversion
-	inc rbx
+	inc r8
 	jmp .start_conversion
 .start_conversion:
-	mov rdi, rbx ; &str[..]
+	mov rdi, r8 ; &str[..]
 	pop rdx ; base_length
 	pop rsi ; base
 	pop rax ; dump str from stack
@@ -196,12 +174,11 @@ _ft_atoi_base:
 	call convert
 	; apply sign
 	pop rcx
-	pop rbx
 	cmp rcx, 1
 	je .ret_sign
 	; mov rax, 1
-	ret
 	; leave
+	ret
 .ret_sign:
 	; called if sign is 1 (cl)
 	; mov rax, 1
@@ -211,5 +188,4 @@ _ft_atoi_base:
 .ret_zero:
 	xor rax, rax
 	; mov rax, 1
-	; leave
 	ret

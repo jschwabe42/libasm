@@ -33,7 +33,7 @@ void test_invalid_inputs() {
 	// Empty string
 	assert(ft_atoi_base("", "0123456789") == 0);
 	// should abort and not print! @audit
-	assert(ft_atoi_base("-0", "0123456789") == 1);
+	assert(ft_atoi_base("-0", "0123456789") == 0);
 	fprintf(stderr, "%d\n", ft_atoi_base("-0", "0123456789"));
 	// Invalid characters
 	assert(ft_atoi_base("123abc", "0123456789") == 0);
