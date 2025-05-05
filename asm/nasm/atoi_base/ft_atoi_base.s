@@ -93,6 +93,7 @@ _check_base:
 	ret
 
 ; rdi, rsi, rdx, rcx: call with str, base, base_len, sign
+; @todo use callee-saved registers for often-used data (r8, rdx)
 convert:
 	push rcx
 	mov rcx, rdi ; save rdi (str)
@@ -149,6 +150,7 @@ convert:
 
 ; rdi: str, rsi: base
 _ft_atoi_base:
+	push rbx
 	push rdi
 .base_len:
 	mov rdi, rsi
@@ -192,14 +194,17 @@ _ft_atoi_base:
 	; call with str, base, base_len, sign
 	call convert
 	pop rdi ; dump str from stack
+	pop rbx
 	ret
 .ret_zero_one:
 	pop rdi
 	xor rax, rax
+	pop rbx
 	ret
 .ret_zero_two:
 	; pop rax   ; Pop the length first
 	pop rsi   ; Pop the base
 	pop rdi   ; Pop str
 	xor rax, rax
+	pop rbx
 	ret
