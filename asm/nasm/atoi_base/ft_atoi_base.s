@@ -54,9 +54,7 @@ check_non_pfx:
 
 ; rdi: base, rsi: length 
 _check_base:
-	push r8
 	xor r8, r8
-	push rdx
 	mov rdx, rdi ; rdx: base
 .loop_outer:
 	cmp r8, rsi ; compare to length
@@ -82,20 +80,16 @@ _check_base:
 	inc r8
 	jmp .loop_outer
 .return_ok:
-	pop rdx
-	pop r8
 	xor rax, rax
 	ret
 .return_err:
-	pop rdx
-	pop r8
 	mov rax, 1
 	ret
 
 ; rdi, rsi, rdx, rcx: call with str, base, base_len, sign
 ; @todo use callee-saved registers for often-used data (r8, rdx)
 convert:
-	push rcx
+	mov r8, rcx
 	mov rcx, rdi ; save rdi (str)
 	xor rax, rax ; initialize total (rax busy)
 .loop_convert_outer:
@@ -123,7 +117,6 @@ convert:
 	mov r9, r10 ; digit_value becomes i
 	jmp .loop_sanity_check
 .insanity:
-	pop r8 ; sign value
 	imul rax, r8
 	ret
 .loop_sanity_check:
@@ -136,11 +129,9 @@ convert:
 	jmp .loop_convert_outer
 .ret_zero:
 	pop rax
-	pop rcx
 	xor rax, rax
 	ret
 .do_return:
-	pop r8
 	cmp r8, 1
 	je .sign
 	ret
@@ -150,61 +141,69 @@ convert:
 
 ; rdi: str, rsi: base
 _ft_atoi_base:
-	push rbx
+	push rbx ; backup callee-save
+	push r12 ; backup callee-save
 	push rdi
+	mov rbx, rdi ; str at rbx
 .base_len:
 	mov rdi, rsi
 	call _ft_strlen
 	cmp rax, 2
 	jl .ret_zero_one ; base is less than 2 characters
+	mov r12, rax
 .validate_base:
-	push rsi ; base
-	mov rsi, rax
-	mov rdx, rax
+	; base at rdi, rsi
+	push rdi ; base
+	mov rsi, r12
 	; rdi: base, rsi: length 
 	call _check_base
 	cmp rax, 0
 	jne .ret_zero_two ; base checks failed
-	mov r8, [rsp + 8] ; access input (str)
+	; mov r8, [rsp + 8] ; access input (str)
 .skip_ws:
-	movzx rdi, byte [r8] ; byte at current address index
+	movzx rdi, byte [rbx] ; byte at current address index
 	call _my_isspace
 	cmp rax, 1
 	jne .check_prefix ; zero: no more prefix
-	inc r8
+	inc rbx
 	jmp .skip_ws
 .check_prefix:
 	xor rcx, rcx
-	movzx rdi, byte [r8]
+	movzx rdi, byte [rbx]
 	cmp rdi, 0x2D ; '-'
 	jne .check_plus
 	;path A: sure to be negative at this point
 	mov rcx, 1 ; sign flag
-	inc r8
+	inc rbx
 	jmp .start_conversion
 .check_plus:
 	;path B: positive or no prefix
 	cmp rdi, 0x2B ; '+'
 	jne .start_conversion
-	inc r8
+	inc rbx
 .start_conversion:
-	mov rdi, r8 ; &str[..]
-	; pop rdx ; base_length
+	mov rdi, rbx ; &str[..]
+	mov rdx, r12 ; provide length
 	pop rsi ; base
 	; call with str, base, base_len, sign
 	call convert
 	pop rdi ; dump str from stack
+	; restore: callee-saved (length, str)
+	pop r12
 	pop rbx
 	ret
 .ret_zero_one:
 	pop rdi
 	xor rax, rax
+	; restore: callee-saved (length, str)
+	pop r12
 	pop rbx
 	ret
 .ret_zero_two:
-	; pop rax   ; Pop the length first
 	pop rsi   ; Pop the base
 	pop rdi   ; Pop str
 	xor rax, rax
+	; restore: callee-saved (length, str)
+	pop r12
 	pop rbx
 	ret
