@@ -12,6 +12,7 @@ void test_decimal() {
 	printf("Testing decimal conversions...\n");
 	fprintf(stderr, "non-ws: %d\n", ft_atoi_base("123490", "0123456789"));
 	fprintf(stderr, "whitespace: %d\n", ft_atoi_base("    123490", "0123456789"));
+	assert(ft_atoi_base("123490", "0123456789") == 123490);
 	assert(ft_atoi_base("    123490", "0123456789") == 123490);
 	assert(ft_atoi_base("    +123490", "0123456789") == 123490);
 	assert(ft_atoi_base("-123490", "0123456789") == -123490);

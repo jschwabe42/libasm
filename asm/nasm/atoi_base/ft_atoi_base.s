@@ -65,19 +65,15 @@ _check_base:
 	cmp rax, 1
 	je .return_err
 	; nested loop
-	mov r9, r8
+	mov r9, r8 ; r9 = r8 + 1
 	inc r9
-	; r9 = r8 + 1
 	jmp .loop_inner
 .loop_inner:
 	cmp r9, rsi
-	; r9 >= rsi
-	jge .next_outer
+	jge .next_outer ; r9 >= rsi
 	movzx rcx, byte [rdx + r9]
 	cmp cl, dil
 	je .return_err
-	jmp .next_inner
-.next_inner:
 	inc r9
 	jmp .loop_inner
 .next_outer:
@@ -113,13 +109,14 @@ convert:
 	; run loop with comparison, assignment
 	movzx rdi, byte [rcx]
 	movzx r11, byte [rsi + r10]
-	cmp dil, r11b
+	cmp rdi, r11
 	je .inner_base_found
+	inc r10
+	jmp .loop_inner
 .inner_base_found:
-	mov r9, r10
-	jmp .loop_sanity_check
+	mov r9, r10 ; digit_value becomes i
 .loop_sanity_check:
-	cmp r9, -1
+	cmp r9, -1 ; check digit_value has changed
 	; mov rax, r8
 	jne .loop_outer_next
 	ret
@@ -132,7 +129,7 @@ convert:
 	inc rcx
 	jmp .loop_convert_outer
 .ret_zero:
-	; xor rax, rax
+	xor rax, rax
 	; mov rax, 1
 	ret
 .do_return:
@@ -200,9 +197,9 @@ _ft_atoi_base:
 	; apply sign
 	pop rcx
 	pop rbx
-	cmp cl, 1
+	cmp rcx, 1
 	je .ret_sign
-	mov rax, 1
+	; mov rax, 1
 	ret
 	; leave
 .ret_sign:
