@@ -3,6 +3,7 @@ section .text
 extern _ft_strlen
 global _ft_atoi_base
 global _my_isspace
+global _check_base
 
 
 ; Whitespace characters in ASCII are:
@@ -19,9 +20,11 @@ _my_isspace:
 	; check for space
 	cmp dil, 0x20 ; 32 on ascii table
 	je .is_space
+.other_whitespace:
 	; check for other characters by subtraction
-	sub dil, 0x09 ; subtract tab ascii value
-	cmp dil, 5
+	movzx rax, dil
+	sub al, 0x09 ; subtract tab ascii value
+	cmp al, 5
 	jb .is_space ; required: use `jb` for unsigned
 	xor rax, rax
 	ret
@@ -29,128 +32,132 @@ _my_isspace:
 	mov rax, 1
 	ret
 
-; rdi: base, rsi: length 
-check_base:
-	; @todo implement checks: base
-	; use r8, r9 for loop
-	; keep track of character position using al, cl
-	xor r8, r8
-.loop_outer:
-	cmp r8, rsi ; compare to length
-	jge .return_ok
-	; char c: outer character position
-	movzx rax, byte [rdi + r8]
-	cmp al, 0x2B ; '+'
-	je .return_err
-	cmp al, 0x2D ; '-'
-	je .return_err
-	push rax
-	; START: check isspace
-	push rdi
-	push rsi
-	mov rdi, rax
-	call _my_isspace
-	pop rsi
-	pop rdi
-	cmp rax, 1
-	je .return_err
-	pop rax
-	; END: check isspace
-	; check c
-	; nested loop
-	mov r9, r8
-	inc r9
-	; r9 = r8 + 1
-	jmp .loop_inner
-.loop_inner:
-	cmp r9, rsi
-	; r9 >= rsi
-	jge .next_outer
-	mov rcx, [rdi + r9]
-	cmp cl, al
-	je .return_err
-	jmp .next_inner
-.next_inner:
-	inc r9
-	jmp .loop_inner
-.next_outer:
-	inc r8
-	jmp .loop_outer
-.return_ok:
-	xor rax, rax
+; rdi: char byte - 1 on found
+check_plus_minus:
+	cmp dil, 0x2B ; '+'
+	je .yes
+	cmp dil, 0x2D ; '-'
+	sete al
 	ret
-.return_err:
+.yes:
 	mov rax, 1
 	ret
 
-; rdi, rsi, rdx call with str, base, base_len
-convert:
-	mov rcx, rdi ; save rdi (str)
-	xor rax, rax ; initialize total (rax busy)
-.loop_convert_outer:
-	movzx rdi, byte [rcx]
-	test rdi, rdi
-	jz .do_return ; end of str!
-	push rax
+; rdi: char byte
+check_non_pfx:
+	call check_plus_minus
+	test rax, rax
+	jnz .return ; rax != 0
 	call _my_isspace
-	; if space found (1) -> return 0
-	cmp rax, 1
-	je .ret_zero
-	pop rax
+	ret
+.return:
+	ret
+
+; rdi: base, rsi: length 
+_check_base:
+	xor r8, r8
+	mov rdx, rdi ; rdx: base
+.loop_outer_precond:
+	cmp r8, rsi ; compare to length
+	jnge .loop_outer
+	xor rax, rax
+	ret
+.loop_outer:
+	; char c: outer character position
+	movzx rdi, byte [rdx + r8] ; precondition: char c at rdi given
+	call check_non_pfx ; check c
+	cmp rax, 1 ; return if hit
+	jne .loop_init_inner
+	ret
+.loop_init_inner:
+	mov r9, r8 ; r9 = r8 + 1
+	inc r9
+	; nested loop
+.loop_inner_precond:
+	cmp r9, rsi
+	je .next_outer ; r9 >= rsi
+.loop_inner:
+	movzx rcx, byte [rdx + r9] ; precondition: char c at rdi
+	cmp cl, dil
+	jne .next_inner
+	mov rax, 1
+	ret
+.next_inner:
+	inc r9
+	jmp .loop_inner_precond
+.next_outer:
+	inc r8
+	jmp .loop_outer_precond
+
+; rdi, rsi, rdx, rcx: call with str, base, base_len, sign
+; @todo use callee-saved registers for often-used data: rdi
+convert:
+	push rbx
+	mov rbx, rdi
+	xor r8, r8 ; initialize total (rax busy)
+	jmp .loop_convert_cond
+.inner_base_found:
+	mov r9, r10 ; digit_value becomes i @follow-up cmov
+.loop_sanity_check:
+	; pcond1: rax == 0
+	cmp r9, -1 ; check digit_value has changed
+	jne .loop_outer_next
+	pop rbx
+	ret
+.loop_outer_next:
+	imul r8d, edx
+	add r8d, r9d ; add digit value to result
+	inc rbx
+.loop_convert_cond:
+	movzx rdi, byte [rbx]
+	test dil, dil
+	jz .do_return ; end of str!
+.loop_convert_outer:
+	call _my_isspace ; rdi is preserved !
+	test rax, rax
+	; pcond1: @audit-info precondition to sanity_check: rax == 0
+	jz .loop_inner_init
+	xor rax, rax
+	pop rbx
+	ret
+.loop_inner_init:
 	mov r9, -1 ; digit_value
 	xor r10, r10 ; inner loop counter
-	jmp .loop_inner
 .loop_inner:
 	cmp r10, rdx
 	jge .loop_sanity_check
 	; run loop with comparison, assignment
-	movzx rdi, byte [rcx]
 	movzx r11, byte [rsi + r10]
 	cmp dil, r11b
 	je .inner_base_found
-.inner_base_found:
-	mov r9, r10
-	jmp .loop_sanity_check
-.loop_sanity_check:
-	cmp r9, -1
-	; mov rax, r8
-	jne .loop_outer_next
-	ret
-.loop_outer_next:
-	; mov rax, r8
-	mul rdx
-	add rax, r9
-	; mov r8, rax
-	; calculate result, put back into r8
-	inc rcx
-	jmp .loop_convert_outer
-.ret_zero:
-	xor rax, rax
-	ret
+	inc r10
+	jmp .loop_inner
 .do_return:
-	; put total into rax
-	; mov rax, r8
+	mov rax, r8
+	neg rax
+	test ecx, ecx
+	cmovz rax, r8 ; sign zero, restore positive
+	pop rbx
 	ret
-
 
 ; rdi: str, rsi: base
+; @audit use rbx callee-save for str iteration, stack vars?
 _ft_atoi_base:
-	push rbx
-	push rdi
+	enter 0, 0 ; prologue
+	push rbx ; backup: callee-save rbx
+	push rsi ; base tmp1
+	mov rbx, rdi ; str at rbx
+.base_len:
 	mov rdi, rsi
 	call _ft_strlen
 	cmp rax, 2
 	jl .ret_zero ; base is less than 2 characters
-	push rsi ; base
-	push rax ; length
+.validate_base:
 	mov rsi, rax
 	; rdi: base, rsi: length 
-	call check_base
+	call _check_base
 	test rax, rax
 	jnz .ret_zero ; base checks failed
-	; @todo implement checks: str
-	; skip whitespace prefixes
-	mov rbx, [rsp + 16] ; access input (str)
 .skip_ws:
 	movzx rdi, byte [rbx] ; byte at current address index
 	call _my_isspace
@@ -159,40 +166,32 @@ _ft_atoi_base:
 	inc rbx
 	jmp .skip_ws
 .check_prefix:
-	; @follow-up return on error
-	; @todo implement conversion
 	xor rcx, rcx
 	movzx rdi, byte [rbx]
-	cmp dil, 0x2D ; '-'
-	jne .check_plus
-	;path A: sure to be negative at this point
-	mov cl, 1 ; sign flag
-	inc rbx
+	cmp rdi, 0x2D ; '-'
+	je .set_minus
 .check_plus:
 	;path B: positive or no prefix
-	cmp dil, 0x2B ; '+'
+	cmp rdi, 0x2B ; '+'
 	jne .start_conversion
 	inc rbx
 	jmp .start_conversion
+.set_minus:
+	;path A: sure to be negative at this point
+	mov rcx, 1 ; sign flag
+	inc rbx
 .start_conversion:
 	mov rdi, rbx ; &str[..]
-	pop rdx ; base_length
-	pop rsi ; base
-	pop rax ; dump str from stack
-	push rcx ; sign
-	; call with str, base, base_len
+	mov rdx, rsi ; provide length
+	mov rsi, [rsp]
+	; call with str, base, base_len, sign
 	call convert
-	; apply sign
-	pop rcx
-	cmp cl, 1
-	je .ret_sign
-	leave
-	ret
-.ret_sign:
-	; called if sign is 1 (cl)
-	neg rax
-	leave
+	; option 1:
+	leave ; epilogue: pops rsi, rbx
 	ret
 .ret_zero:
+	; option 2: epilogue - pops rsi, rbx
+	mov rsp, rbp ; restore stack ptr
+	pop rbp ; restore base ptr
 	xor rax, rax
 	ret
