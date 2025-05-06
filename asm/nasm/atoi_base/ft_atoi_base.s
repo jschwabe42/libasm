@@ -4,7 +4,7 @@ extern _ft_strlen
 global _ft_atoi_base
 global _my_isspace
 global _check_base
-; global _check_plus_minus
+global _check_plus_minus
 
 
 ; Whitespace characters in ASCII are:
@@ -32,23 +32,21 @@ _my_isspace:
 	ret
 
 ; rdi: char byte - 1 on found
-check_plus_minus:
-	cmp dil, 0x2B ; '+'
-	je .yes
-	cmp dil, 0x2D ; '-'
-	sete al
-	ret
-.yes:
+_check_plus_minus:
 	mov rax, 1
+	cmp dil, 0x2B ; '+'
+	je .return
+	cmp dil, 0x2D ; '-'
+.return:
+	sete al
 	ret
 
 ; rdi: char byte
 check_non_pfx:
-	call check_plus_minus
+	call _check_plus_minus
 	test rax, rax
 	jnz .return ; rax != 0
 	call _my_isspace
-	ret
 .return:
 	ret
 

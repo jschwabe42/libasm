@@ -7,6 +7,7 @@
 extern int ft_atoi_base(char *str, char *base);
 extern int check_base(char *base, size_t length);
 extern int my_isspace(int c);
+extern int check_plus_minus(int c);
 
 void test_decimal() {
 	printf("Testing decimal conversions...\n");
@@ -107,10 +108,23 @@ void test_base_sanity() {
 	assert(check_base(" 3 01", 2) == 1);
 }
 
+void test_plus_minus() {
+	assert(check_plus_minus('+') == 1);
+	assert(check_plus_minus('-') == 1);
+	assert(check_plus_minus(44) == 0);
+	for (int i = 0; i < 43; i++) {
+		assert(check_plus_minus(i) == 0);
+	}
+	for (int i = 46; i < 256; i++) {
+		assert(check_plus_minus(i) == 0);
+	}
+}
+
 int main() {
 	printf("Testing ft_atoi_base...\n\n");
-	test_base_sanity();
 	test_isspace();
+	test_plus_minus();
+	test_base_sanity();
 	test_decimal();
 	test_hex();
 	test_edge_cases();
