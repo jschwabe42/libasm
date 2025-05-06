@@ -37,6 +37,7 @@ void test_invalid_inputs() {
 	// fprintf(stderr, "%d\n", ft_atoi_base("-0", "0123456789"));
 	// Invalid characters
 	assert(ft_atoi_base("123abc", "0123456789") == 0);
+	assert(ft_atoi_base("123", "01234567890") == 0);
 	assert(ft_atoi_base("123abc", "0123456789abc") == 436851);
 	assert(ft_atoi_base("xyz", "0123456789") == 0);
 	fprintf(stderr, "%d\n", ft_atoi_base("xyz", "0123456789"));

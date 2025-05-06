@@ -93,6 +93,22 @@ the stack as well.
 pointer. That is, arguments are pushed on in right-to-left order when applicable.
 - Local variables will be stored in the space allocated in the function prologue, when some
 amount is subtracted from %rsp. The organization of these is up to the programmer.
+- prologue: set up stack
+```asm
+; manual setup: often faster
+push rbp
+mov rbp, rsp
+; use enter with: local varbytes, nesting level
+enter 0, 0
+```
+- epilogue:
+```asm
+; manual epilogue: restore stack, base ptr
+mov rsp, rbp
+pop rbp
+; requires previous enter
+leave
+```
 
 ## syscalls
 ___error returns pointer into rax, we need to store if we want to keep the values located there (e.g. RDX)
@@ -119,4 +135,11 @@ on failure:
 	pop rbp
 	mov rax, -1              ; Return -1 to indicate error
 	ret
+```
+### operations
+- multiplication: prefer `imul S D` (-> stored at rax) over `mul operand`
+```asm
+push rdx
+mul rdx ; result stored in rax:rdx -> rdx needs to be stored safely
+pop rdx
 ```

@@ -37,8 +37,7 @@ check_plus_minus:
 	cmp dil, 0x2B ; '+'
 	je .yes
 	cmp dil, 0x2D ; '-'
-	je .yes
-	xor rax, rax
+	sete al
 	ret
 .yes:
 	mov rax, 1
@@ -58,35 +57,37 @@ check_non_pfx:
 _check_base:
 	xor r8, r8
 	mov rdx, rdi ; rdx: base
-.loop_outer:
+.loop_outer_precond:
 	cmp r8, rsi ; compare to length
-	jge .return_ok
-	; char c: outer character position
-	movzx rdi, byte [rdx + r8]
-	call check_non_pfx ; check c
-	cmp rax, 1
-	je .return_err
-	; nested loop
-	mov r9, r8 ; r9 = r8 + 1
-	inc r9
-.loop_inner:
-	cmp r9, rsi
-	je .next_outer ; r9 >= rsi
-	movzx rcx, byte [rdx + r9]
-	movzx rdi, byte [rdx + r8]
-	cmp rcx, rdi
-	je .return_err
-	inc r9
-	jmp .loop_inner
-.next_outer:
-	inc r8
-	jmp .loop_outer
-.return_ok:
+	jnge .loop_outer
 	xor rax, rax
 	ret
-.return_err:
+.loop_outer:
+	; char c: outer character position
+	movzx rdi, byte [rdx + r8] ; precondition: char c at rdi given
+	call check_non_pfx ; check c
+	cmp rax, 1 ; return if hit
+	jne .loop_init_inner
+	ret
+.loop_init_inner:
+	mov r9, r8 ; r9 = r8 + 1
+	inc r9
+	; nested loop
+.loop_inner_precond:
+	cmp r9, rsi
+	je .next_outer ; r9 >= rsi
+.loop_inner:
+	movzx rcx, byte [rdx + r9] ; precondition: char c at rdi
+	cmp cl, dil
+	jne .next_inner
 	mov rax, 1
 	ret
+.next_inner:
+	inc r9
+	jmp .loop_inner_precond
+.next_outer:
+	inc r8
+	jmp .loop_outer_precond
 
 ; rdi, rsi, rdx, rcx: call with str, base, base_len, sign
 ; @todo use callee-saved registers for often-used data: rdi
@@ -96,18 +97,14 @@ convert:
 	xor r8, r8 ; initialize total (rax busy)
 	jmp .loop_convert_cond
 .inner_base_found:
-	mov r9, r10 ; digit_value becomes i
+	mov r9, r10 ; digit_value becomes i @follow-up cmov
 .loop_sanity_check:
+	; pcond1: rax == 0
 	cmp r9, -1 ; check digit_value has changed
 	jne .loop_outer_next
-	; imul r8d, ecx ; @audit same output if commented out will multiply rcx by r8 into rdx:rax - **overwrites** rdx (high 64 bits)
 	pop rbx
 	ret
 .loop_outer_next:
-	; mov rax, r8
-	; imul rax, r12(rdx) ; prevent issues with rdx when using `mul` instead
-	; add rax, r12(rdx) ; store at rdx:rax
-	; mov r8, rax
 	imul r8d, edx
 	add r8d, r9d ; add digit value to result
 	inc rbx
@@ -118,6 +115,7 @@ convert:
 .loop_convert_outer:
 	call _my_isspace ; rdi is preserved !
 	test rax, rax
+	; pcond1: @audit-info precondition to sanity_check: rax == 0
 	jz .loop_inner_init
 	xor rax, rax
 	pop rbx
@@ -143,13 +141,9 @@ convert:
 	ret
 
 ; rdi: str, rsi: base
-; use rbx callee-save for str iteration
+; @audit use rbx callee-save for str iteration, stack vars?
 _ft_atoi_base:
-	; prologue: set up stack
-	; push rbp
-	; mov rbp, rsp
-	; use enter with: local varbytes, nesting level
-	enter 0, 0
+	enter 0, 0 ; prologue
 	push rbx ; backup: callee-save rbx
 	push rsi ; base tmp1
 	mov rbx, rdi ; str at rbx
@@ -167,8 +161,8 @@ _ft_atoi_base:
 .skip_ws:
 	movzx rdi, byte [rbx] ; byte at current address index
 	call _my_isspace
-	cmp rax, 1
-	jne .check_prefix ; zero: no more prefix
+	test rax, rax
+	jz .check_prefix ; zero: no more prefix
 	inc rbx
 	jmp .skip_ws
 .check_prefix:
@@ -192,11 +186,11 @@ _ft_atoi_base:
 	mov rsi, [rsp]
 	; call with str, base, base_len, sign
 	call convert
-	leave ; pops rsi, rbx
+	leave ; epilogue: pops rsi, rbx
 	ret
 .ret_zero:
 	; option 1:
-	leave ; pops rsi, rbx
+	leave ; epilogue: pops rsi, rbx
 	; option 2:
 	; mov rsp, rbp ; restore stack ptr
 	; pop rbp ; restore base ptr
