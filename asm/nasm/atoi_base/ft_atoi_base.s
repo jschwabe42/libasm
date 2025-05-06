@@ -145,26 +145,25 @@ convert:
 ; rdi: str, rsi: base
 ; use rbx callee-save for str iteration
 _ft_atoi_base:
-	push rdi ; str tmp
+	; prologue: set up stack
+	; push rbp
+	; mov rbp, rsp
+	; use enter with: local varbytes, nesting level
+	enter 0, 0
 	push rbx ; backup: callee-save rbx
 	push rsi ; base tmp1
-	; push r12 ; backup callee-save
 	mov rbx, rdi ; str at rbx
 .base_len:
 	mov rdi, rsi
 	call _ft_strlen
 	cmp rax, 2
 	jl .ret_zero ; base is less than 2 characters
-	; mov r12, rax
 .validate_base:
-	; base at rdi, rsi
-	; mov rsi, r12
 	mov rsi, rax
 	; rdi: base, rsi: length 
 	call _check_base
-	cmp rax, 0
-	jne .ret_zero ; base checks failed
-	; mov r8, [rsp + 8] ; access input (str)
+	test rax, rax
+	jnz .ret_zero ; base checks failed
 .skip_ws:
 	movzx rdi, byte [rbx] ; byte at current address index
 	call _my_isspace
@@ -176,38 +175,30 @@ _ft_atoi_base:
 	xor rcx, rcx
 	movzx rdi, byte [rbx]
 	cmp rdi, 0x2D ; '-'
-	jne .check_plus
-	;path A: sure to be negative at this point
-	mov rcx, 1 ; sign flag
-	inc rbx
-	jmp .start_conversion
+	je .set_minus
 .check_plus:
 	;path B: positive or no prefix
 	cmp rdi, 0x2B ; '+'
 	jne .start_conversion
 	inc rbx
+	jmp .start_conversion
+.set_minus:
+	;path A: sure to be negative at this point
+	mov rcx, 1 ; sign flag
+	inc rbx
 .start_conversion:
 	mov rdi, rbx ; &str[..]
 	mov rdx, rsi ; provide length
-	pop rsi ; base tmp1
-	pop rbx ; restore: callee-save rbx
-	; pop r12
+	mov rsi, [rsp]
 	; call with str, base, base_len, sign
 	call convert
-	pop rdi
-	; pop rdi ; str tmp
-	; restore: callee-saved (length, str)
+	leave ; pops rsi, rbx
 	ret
 .ret_zero:
-	; restore: callee-saved (length, str)
 	; option 1:
-	; pop rsi ; base tmp1
-	; pop rbx ; restore: callee-save rbx
+	leave ; pops rsi, rbx
 	; option 2:
-	; add rsp, 16
-	; option 3:
-	leave
-	; pop r12
-	; pop rdi ; str tmp
+	; mov rsp, rbp ; restore stack ptr
+	; pop rbp ; restore base ptr
 	xor rax, rax
 	ret
