@@ -56,27 +56,28 @@ _check_base:
 	mov rdx, rdi ; rdx: base
 .loop_outer_precond:
 	cmp r8, rsi ; compare to length
-	; setnge al; setne al ; could just be init 0
 	jne .loop_outer
 	ret
 .loop_outer:
 	; char c: outer character position
 	movzx rdi, byte [rdx + r8] ; precondition: char c at rdi given
 	call check_non_pfx ; check c
-	cmp rax, 1 ; return if hit
+	cmp al, 1 ; return if hit
 	jne .loop_init_inner
 	ret
 .loop_init_inner:
-	mov r9, r8 ; r9 = r8 + 1
-	inc r9
-	; nested loop
+	; opt 1
+	; mov r9, r8 ; r9 = r8 + 1
+	; inc r9
+	; opt 2
+	lea r9, [r8 + 1]
 .loop_inner_precond:
 	cmp r9, rsi
 	je .next_outer ; r9 >= rsi
 .loop_inner:
 	movzx rcx, byte [rdx + r9] ; precondition: char c at rdi
 	cmp cl, dil
-	sete al
+	sete al ; in this case equal to `mov al, 1`
 	jne .next_inner
 	ret
 .next_inner:
@@ -89,22 +90,33 @@ _check_base:
 ; rdi, rsi, rdx, rcx: call with str, base, base_len, sign
 ; @todo use callee-saved registers for often-used data: rdi
 convert:
-	push rbx
-	mov rbx, rdi
+	enter 8, 1
+	; opt1
+	; push rbx
+	; mov rbx, rdi
+	; opt2
+	mov [rbp - 8], qword rdi
 	xor r8, r8 ; initialize total (rax busy)
 	jmp .loop_convert_cond
 .loop_sanity_check:
 	; pcond1: rax == 0
 	cmp r9, -1 ; check digit_value has changed
 	jne .loop_outer_next
-	pop rbx
-	ret
+	jmp .epilogue
 .loop_outer_next:
 	imul r8d, edx
 	add r8d, r9d ; add digit value to result
-	inc rbx
+	; opt1
+	; inc rbx
+	; opt2
+	inc qword [rbp - 8]
 .loop_convert_cond:
-	movzx rdi, byte [rbx]
+	; opt1
+	; movzx rdi, byte [rbx]
+	; opt2
+	mov rdi, qword [rbp - 8]
+	movzx rdi, byte [rdi]
+	; end opt2
 	test dil, dil
 	jz .do_return ; end of str!
 .loop_convert_outer:
@@ -113,8 +125,7 @@ convert:
 	; pcond1: @audit-info precondition to sanity_check: rax == 0
 	jz .loop_inner_init
 	setz al
-	pop rbx
-	ret
+	jmp .epilogue
 .loop_inner_init:
 	mov r9, -1 ; digit_value
 	xor r10, r10 ; inner loop counter
@@ -133,7 +144,8 @@ convert:
 	neg rax
 	test ecx, ecx
 	cmovz rax, r8 ; sign zero, restore positive
-	pop rbx
+.epilogue:
+	leave
 	ret
 
 ; rdi: str, rsi: base
