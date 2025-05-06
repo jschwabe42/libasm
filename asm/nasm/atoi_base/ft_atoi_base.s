@@ -20,9 +20,11 @@ _my_isspace:
 	; check for space
 	cmp dil, 0x20 ; 32 on ascii table
 	je .is_space
+.other_whitespace:
 	; check for other characters by subtraction
-	sub dil, 0x09 ; subtract tab ascii value
-	cmp dil, 5
+	movzx rax, dil
+	sub al, 0x09 ; subtract tab ascii value
+	cmp al, 5
 	jb .is_space ; required: use `jb` for unsigned
 	xor rax, rax
 	ret
@@ -89,54 +91,50 @@ _check_base:
 ; rdi, rsi, rdx, rcx: call with str, base, base_len, sign
 ; @todo use callee-saved registers for often-used data (r8, rdx)
 convert:
-	mov r8, rcx
-	mov rcx, rdi ; save rdi (str)
-	xor rax, rax ; initialize total (rax busy)
-.loop_convert_outer:
-	movzx rdi, byte [rcx]
-	test rdi, rdi
+	xor r8, r8 ; initialize total (rax busy)
+	jmp .loop_convert_cond
+.inner_base_found:
+	mov r9, r10 ; digit_value becomes i
+.loop_sanity_check:
+	cmp r9, -1 ; check digit_value has changed
+	jne .loop_outer_next
+	; imul r8d, ecx ; @audit same output if commented out will multiply rcx by r8 into rdx:rax - **overwrites** rdx (high 64 bits)
+	ret
+.loop_outer_next:
+	; mov rax, r8
+	; imul rax, r12(rdx) ; prevent issues with rdx when using `mul` instead
+	; add rax, r12(rdx) ; store at rdx:rax
+	; mov r8, rax
+	imul r8d, edx
+	add r8d, r9d ; add digit value to result
+	inc rbx
+.loop_convert_cond:
+	movzx rdi, byte [rbx]
+	test dil, dil
 	jz .do_return ; end of str!
-	push rax
-	call _my_isspace
-	cmp rax, 1
-	je .ret_zero
-	pop rax
+.loop_convert_outer:
+	call _my_isspace ; rdi is preserved !
+	test rax, rax
+	jz .loop_inner_init
+	xor rax, rax
+	ret
+.loop_inner_init:
 	mov r9, -1 ; digit_value
 	xor r10, r10 ; inner loop counter
 .loop_inner:
 	cmp r10, rdx
-	je .loop_sanity_check
+	jge .loop_sanity_check
 	; run loop with comparison, assignment
-	movzx rdi, byte [rcx]
 	movzx r11, byte [rsi + r10]
 	cmp dil, r11b
 	je .inner_base_found
 	inc r10
 	jmp .loop_inner
-.inner_base_found:
-	mov r9, r10 ; digit_value becomes i
-	jmp .loop_sanity_check
-.insanity:
-	imul rax, r8
-	ret
-.loop_sanity_check:
-	cmp r9, -1 ; check digit_value has changed
-	je .insanity
-.loop_outer_next:
-	imul rax, rdx ; prevent issues with rdx when using `mul` instead
-	add rax, r9
-	inc rcx
-	jmp .loop_convert_outer
-.ret_zero:
-	pop rax
-	xor rax, rax
-	ret
 .do_return:
-	cmp r8, 1
-	je .sign
-	ret
-.sign:
+	mov rax, r8
 	neg rax
+	test ecx, ecx
+	cmovz rax, r8 ; sign zero, restore positive
 	ret
 
 ; rdi: str, rsi: base
