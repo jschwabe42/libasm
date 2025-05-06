@@ -4,6 +4,7 @@ extern _ft_strlen
 global _ft_atoi_base
 global _my_isspace
 global _check_base
+; global _check_plus_minus
 
 
 ; Whitespace characters in ASCII are:
@@ -19,17 +20,15 @@ global _check_base
 _my_isspace:
 	; check for space
 	cmp dil, 0x20 ; 32 on ascii table
-	je .is_space
+	jne .other_whitespace
+	mov rax, 1
+	ret
 .other_whitespace:
 	; check for other characters by subtraction
 	movzx rax, dil
 	sub al, 0x09 ; subtract tab ascii value
 	cmp al, 5
-	jb .is_space ; required: use `jb` for unsigned
-	xor rax, rax
-	ret
-.is_space:
-	mov rax, 1
+	setb al
 	ret
 
 ; rdi: char byte - 1 on found
@@ -59,8 +58,8 @@ _check_base:
 	mov rdx, rdi ; rdx: base
 .loop_outer_precond:
 	cmp r8, rsi ; compare to length
-	jnge .loop_outer
-	xor rax, rax
+	; setnge al; setne al ; could just be init 0
+	jne .loop_outer
 	ret
 .loop_outer:
 	; char c: outer character position
@@ -79,8 +78,8 @@ _check_base:
 .loop_inner:
 	movzx rcx, byte [rdx + r9] ; precondition: char c at rdi
 	cmp cl, dil
+	sete al
 	jne .next_inner
-	mov rax, 1
 	ret
 .next_inner:
 	inc r9
@@ -96,8 +95,6 @@ convert:
 	mov rbx, rdi
 	xor r8, r8 ; initialize total (rax busy)
 	jmp .loop_convert_cond
-.inner_base_found:
-	mov r9, r10 ; digit_value becomes i @follow-up cmov
 .loop_sanity_check:
 	; pcond1: rax == 0
 	cmp r9, -1 ; check digit_value has changed
@@ -117,7 +114,7 @@ convert:
 	test rax, rax
 	; pcond1: @audit-info precondition to sanity_check: rax == 0
 	jz .loop_inner_init
-	xor rax, rax
+	setz al
 	pop rbx
 	ret
 .loop_inner_init:
@@ -129,7 +126,8 @@ convert:
 	; run loop with comparison, assignment
 	movzx r11, byte [rsi + r10]
 	cmp dil, r11b
-	je .inner_base_found
+	cmove r9, r10
+	je .loop_sanity_check
 	inc r10
 	jmp .loop_inner
 .do_return:
