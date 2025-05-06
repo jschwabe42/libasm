@@ -89,8 +89,10 @@ _check_base:
 	ret
 
 ; rdi, rsi, rdx, rcx: call with str, base, base_len, sign
-; @todo use callee-saved registers for often-used data (r8, rdx)
+; @todo use callee-saved registers for often-used data: rdi
 convert:
+	push rbx
+	mov rbx, rdi
 	xor r8, r8 ; initialize total (rax busy)
 	jmp .loop_convert_cond
 .inner_base_found:
@@ -99,6 +101,7 @@ convert:
 	cmp r9, -1 ; check digit_value has changed
 	jne .loop_outer_next
 	; imul r8d, ecx ; @audit same output if commented out will multiply rcx by r8 into rdx:rax - **overwrites** rdx (high 64 bits)
+	pop rbx
 	ret
 .loop_outer_next:
 	; mov rax, r8
@@ -117,6 +120,7 @@ convert:
 	test rax, rax
 	jz .loop_inner_init
 	xor rax, rax
+	pop rbx
 	ret
 .loop_inner_init:
 	mov r9, -1 ; digit_value
@@ -135,28 +139,31 @@ convert:
 	neg rax
 	test ecx, ecx
 	cmovz rax, r8 ; sign zero, restore positive
+	pop rbx
 	ret
 
 ; rdi: str, rsi: base
+; use rbx callee-save for str iteration
 _ft_atoi_base:
-	push rbx ; backup callee-save
-	push r12 ; backup callee-save
-	push rdi
+	push rdi ; str tmp
+	push rbx ; backup: callee-save rbx
+	push rsi ; base tmp1
+	; push r12 ; backup callee-save
 	mov rbx, rdi ; str at rbx
 .base_len:
 	mov rdi, rsi
 	call _ft_strlen
 	cmp rax, 2
-	jl .ret_zero_one ; base is less than 2 characters
-	mov r12, rax
+	jl .ret_zero ; base is less than 2 characters
+	; mov r12, rax
 .validate_base:
 	; base at rdi, rsi
-	push rdi ; base
-	mov rsi, r12
+	; mov rsi, r12
+	mov rsi, rax
 	; rdi: base, rsi: length 
 	call _check_base
 	cmp rax, 0
-	jne .ret_zero_two ; base checks failed
+	jne .ret_zero ; base checks failed
 	; mov r8, [rsp + 8] ; access input (str)
 .skip_ws:
 	movzx rdi, byte [rbx] ; byte at current address index
@@ -181,27 +188,26 @@ _ft_atoi_base:
 	inc rbx
 .start_conversion:
 	mov rdi, rbx ; &str[..]
-	mov rdx, r12 ; provide length
-	pop rsi ; base
+	mov rdx, rsi ; provide length
+	pop rsi ; base tmp1
+	pop rbx ; restore: callee-save rbx
+	; pop r12
 	; call with str, base, base_len, sign
 	call convert
-	pop rdi ; dump str from stack
-	; restore: callee-saved (length, str)
-	pop r12
-	pop rbx
-	ret
-.ret_zero_one:
 	pop rdi
-	xor rax, rax
+	; pop rdi ; str tmp
 	; restore: callee-saved (length, str)
-	pop r12
-	pop rbx
 	ret
-.ret_zero_two:
-	pop rsi   ; Pop the base
-	pop rdi   ; Pop str
-	xor rax, rax
+.ret_zero:
 	; restore: callee-saved (length, str)
-	pop r12
-	pop rbx
+	; option 1:
+	; pop rsi ; base tmp1
+	; pop rbx ; restore: callee-save rbx
+	; option 2:
+	; add rsp, 16
+	; option 3:
+	leave
+	; pop r12
+	; pop rdi ; str tmp
+	xor rax, rax
 	ret
