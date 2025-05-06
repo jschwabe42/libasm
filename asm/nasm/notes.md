@@ -106,7 +106,7 @@ enter 0, 0
 ; manual epilogue: restore stack, base ptr
 mov rsp, rbp
 pop rbp
-; requires previous enter
+; usually used in combination with enter
 leave
 ```
 

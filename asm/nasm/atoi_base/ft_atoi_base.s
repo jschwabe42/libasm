@@ -186,13 +186,12 @@ _ft_atoi_base:
 	mov rsi, [rsp]
 	; call with str, base, base_len, sign
 	call convert
+	; option 1:
 	leave ; epilogue: pops rsi, rbx
 	ret
 .ret_zero:
-	; option 1:
-	leave ; epilogue: pops rsi, rbx
-	; option 2:
-	; mov rsp, rbp ; restore stack ptr
-	; pop rbp ; restore base ptr
+	; option 2: epilogue - pops rsi, rbx
+	mov rsp, rbp ; restore stack ptr
+	pop rbp ; restore base ptr
 	xor rax, rax
 	ret
