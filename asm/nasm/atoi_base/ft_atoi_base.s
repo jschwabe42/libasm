@@ -65,16 +65,12 @@ _check_base:
 	cmp al, 1 ; return if hit
 	jne .loop_init_inner
 	ret
-.loop_init_inner:
-	; opt 1
-	; mov r9, r8 ; r9 = r8 + 1
-	; inc r9
-	; opt 2
-	lea r9, [r8 + 1]
+.loop_init_inner: ; r9 = r8 + 1
+	lea r9, [r8 + 1]; same as `mov r9, r8`, `inc r9`
 .loop_inner_precond:
 	cmp r9, rsi
-	je .next_outer ; r9 >= rsi
-.loop_inner:
+	je .next_outer
+.loop_inner: ; r9 < rsi
 	movzx rcx, byte [rdx + r9] ; precondition: char c at rdi
 	cmp cl, dil
 	sete al ; in this case equal to `mov al, 1`
@@ -88,42 +84,27 @@ _check_base:
 	jmp .loop_outer_precond
 
 ; rdi, rsi, rdx, rcx: call with str, base, base_len, sign
-; @todo use callee-saved registers for often-used data: rdi
 convert:
 	enter 8, 1
-	; opt1
-	; push rbx
-	; mov rbx, rdi
-	; opt2
-	mov [rbp - 8], qword rdi
+	mov [rbp - 8], qword rdi ; opt1: `push rbx`, `mov rbx, rdi` (callee-save)
 	xor r8, r8 ; initialize total (rax busy)
 	jmp .loop_convert_cond
-.loop_sanity_check:
-	; pcond1: rax == 0
+.loop_sanity_check: ; pcond: rax == 0
 	cmp r9, -1 ; check digit_value has changed
-	jne .loop_outer_next
-	jmp .epilogue
+	je .epilogue
 .loop_outer_next:
 	imul r8d, edx
 	add r8d, r9d ; add digit value to result
-	; opt1
-	; inc rbx
-	; opt2
-	inc qword [rbp - 8]
+	inc qword [rbp - 8]; opt1: `inc rbx`
 .loop_convert_cond:
-	; opt1
-	; movzx rdi, byte [rbx]
-	; opt2
 	mov rdi, qword [rbp - 8]
-	movzx rdi, byte [rdi]
-	; end opt2
+	movzx rdi, byte [rdi] ; opt1: `movzx rdi, byte [rbx]`
 	test dil, dil
 	jz .do_return ; end of str!
 .loop_convert_outer:
 	call _my_isspace ; rdi is preserved !
 	test rax, rax
-	; pcond1: @audit-info precondition to sanity_check: rax == 0
-	jz .loop_inner_init
+	jz .loop_inner_init; pcond: rax == 0
 	setz al
 	jmp .epilogue
 .loop_inner_init:
@@ -135,7 +116,7 @@ convert:
 	; run loop with comparison, assignment
 	movzx r11, byte [rsi + r10]
 	cmp dil, r11b
-	cmove r9, r10
+	cmove r9, r10 ; modify digit_value
 	je .loop_sanity_check
 	inc r10
 	jmp .loop_inner
@@ -149,7 +130,6 @@ convert:
 	ret
 
 ; rdi: str, rsi: base
-; @audit use rbx callee-save for str iteration, stack vars?
 _ft_atoi_base:
 	enter 0, 0 ; prologue
 	push rbx ; backup: callee-save rbx
@@ -194,8 +174,7 @@ _ft_atoi_base:
 	mov rsi, [rsp]
 	; call with str, base, base_len, sign
 	call convert
-	; option 1:
-	leave ; epilogue: pops rsi, rbx
+	leave ; option1 epilogue: pops rsi, rbx
 	ret
 .ret_zero:
 	; option 2: epilogue - pops rsi, rbx
