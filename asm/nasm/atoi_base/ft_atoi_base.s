@@ -6,6 +6,7 @@ global _my_isspace
 global _check_base
 global _check_plus_minus
 
+%include "macros.s"
 
 ; Whitespace characters in ASCII are:
 ; - Space (32: 0x20)
@@ -170,6 +171,7 @@ _ft_atoi_base:
 	inc rbx
 .start_conversion:
 	mov rdi, rbx ; &str[..]
+	PRINT_PTR ; print rdi
 	mov rdx, rsi ; provide length
 	mov rsi, [rsp]
 	; call with str, base, base_len, sign
