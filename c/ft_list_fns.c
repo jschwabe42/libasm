@@ -58,11 +58,22 @@ void	helper_free_list_data(t_list *begin_list) {
 	}
 }
 
+int		ft_list_size(t_list *begin_list) {
+	t_list	*cur = begin_list; // local: could just use begin_list
+	int	len = 0;
+	while (cur && ++len) {
+		cur = cur->next;
+	}
+	return len;
+}
+
 int	main() {
 	// element creation
 	char	*somedata = strdup("my_secret at 0x0");
 	const t_list template = (struct s_list){.data = somedata, .next = NULL};
 	t_list	*created = ft_create_elem(somedata);
+	assert(ft_list_size(NULL) == 0);
+	assert(ft_list_size(created) == 1);
 	assert(created != NULL);
 	assert(created->data == template.data);
 	assert(created->next == template.next);
@@ -77,6 +88,7 @@ int	main() {
 	fprintf((stderr), "second elem: %s\n", (char *)((*dbl_ptr)->next->data));
 	assert(((*dbl_ptr)->next) != NULL);
 	assert(((*dbl_ptr)->next->next) == NULL);
+	assert(ft_list_size(*dbl_ptr) == 2);
 	// free((*dbl_ptr)->next);
 	// free(*dbl_ptr);
 	// free(somedata);
@@ -84,8 +96,6 @@ int	main() {
 	helper_free_list_data(*dbl_ptr);
 	free(dbl_ptr);
 }
-
-int		ft_list_size(t_list *begin_list);
 
 /*
 sorts the list elements in ascending order
