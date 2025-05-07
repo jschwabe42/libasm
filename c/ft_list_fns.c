@@ -67,12 +67,14 @@ int		ft_list_size(t_list *begin_list) {
 	}
 	return len;
 }
-
 void	ft_list_sort(t_list** lst, int (*cmp)(void *, void *));
 int	cmp_bubble(void *ptr_a, void *ptr_b) {
 	const int	a = *(int *)ptr_a;
 	const int	b = *(int *)ptr_b;
 	return a - b;
+}
+int	not_cmp(void *ptr_a, void *ptr_b) {
+	return cmp_bubble(ptr_b, ptr_a);
 }
 
 void	test_list_sort() {
@@ -86,10 +88,29 @@ void	test_list_sort() {
 		// @audit-info since prepended arr_ordered used
 		ft_list_push_front(dbl_ptr, &arr_ordered[i]);
 	}
-	t_list	*print = *dbl_ptr;
+	// print and assert unordered correctly
+	t_list	*print_assert = *dbl_ptr;
 	for (int i = 0; i < 5; i++) {
-		fprintf(stderr, "%d\n", *(int *)print->data);
-		print = print->next;
+		fprintf(stderr, "%d\n", *(int *)print_assert->data);
+		assert(arr[i] == *(int *)print_assert->data);
+		print_assert = print_assert->next;
+	}
+	// validate comparison function
+	assert(cmp_bubble(&arr[0], &arr[1]) > 0);
+	ft_list_sort(dbl_ptr, cmp_bubble);
+	fprintf(stderr, "\n------\nre - ordered\n\n");
+	t_list	*check_sorted = *dbl_ptr;
+	for (int i = 0; i < 5; i++) {
+		fprintf(stderr, "%d\n", *(int *)check_sorted->data);
+		assert(arr_ordered[i] == *(int *)check_sorted->data);
+		check_sorted = check_sorted->next;
+	}
+	assert(not_cmp(&arr[0], &arr[1]) < 0);
+	ft_list_sort(dbl_ptr, not_cmp);
+	t_list	*re_unordered = *dbl_ptr;
+	for (int i = 0; i < 5; i++) {
+		assert(arr[i] == *(int *)re_unordered->data);
+		re_unordered = re_unordered->next;
 	}
 }
 
