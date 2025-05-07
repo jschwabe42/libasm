@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 typedef struct s_list
 {
@@ -67,6 +68,31 @@ int		ft_list_size(t_list *begin_list) {
 	return len;
 }
 
+void	ft_list_sort(t_list** lst, int (*cmp)(void *, void *));
+int	cmp_bubble(void *ptr_a, void *ptr_b) {
+	const int	a = *(int *)ptr_a;
+	const int	b = *(int *)ptr_b;
+	return a - b;
+}
+
+void	test_list_sort() {
+	int	arr[5] = {5, 4, 3, 2, 1};
+	int	arr_ordered[5] = {1, 2, 3, 4 ,5};
+	t_list	**dbl_ptr = malloc(sizeof(t_list));
+	// @audit-info since prepended arr_ordered used
+	t_list	*last = ft_create_elem(&arr_ordered[0]);
+	*dbl_ptr = last;
+	for (int i = 1; i < 5; i++) {
+		// @audit-info since prepended arr_ordered used
+		ft_list_push_front(dbl_ptr, &arr_ordered[i]);
+	}
+	t_list	*print = *dbl_ptr;
+	for (int i = 0; i < 5; i++) {
+		fprintf(stderr, "%d\n", *(int *)print->data);
+		print = print->next;
+	}
+}
+
 int	main() {
 	// element creation
 	char	*somedata = strdup("my_secret at 0x0");
@@ -95,6 +121,7 @@ int	main() {
 	// free(nowfirstdata);
 	helper_free_list_data(*dbl_ptr);
 	free(dbl_ptr);
+	test_list_sort();
 }
 
 /*
@@ -103,7 +130,39 @@ by comparing two elements and their data using a comparison function
 
 (*cmp)(list_ptr->data, list_other_ptr->data); (cmp such as strcmp)
 */
-t_list	*ft_list_sort(t_list* lst, int (*cmp)());
+void	ft_list_sort(t_list** lst, int (*cmp)(void *, void *)) {
+	// @audit check head movement!
+	// basically bubble sort
+	t_list	*cur = *lst;
+	t_list	*next = (*lst)->next;
+	// int should_do = (*cmp)(list_ptr->data, list_other_ptr->data)
+	// if (should_do > 0) -> strcmp has negative values, != is not sufficient!
+	bool	sorted = false;
+	while (!sorted) {
+		sorted = true;
+		while (cur && next) {
+			if (cmp(cur->data, next->data) > 0) {
+				sorted = false;
+				// @audit check if head is being swapped:
+				// obsolete by only swapping data assignments
+				// if (cur == *lst) {
+				// 	*lst = next;
+				// }
+				// swap data only: ptr invalidation to data
+				void	*tmp_cur = cur->data;
+				cur->data = next->data;
+				next->data = tmp_cur;
+			}
+			// advance
+			cur = cur->next;
+			next = next->next;
+		}
+		// reset to head @audit-info
+		cur = *lst;
+		next = (*lst)->next;
+	}
+	// make sure new head is correctly set! @audit
+}
 
 /*
 removes from the list all elements whose data,
