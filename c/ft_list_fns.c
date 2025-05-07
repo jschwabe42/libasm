@@ -26,6 +26,37 @@ t_list  *ft_create_elem(void *data) {
 	}
 	return new;
 }
+/*
+dep: t_list *ft_create_elem(void *data);
+creates a new element of t_list.
+- It should assign data to the given argument and next to NULL.
+
+adds a new element (t_list) to the beginning of the list
+- It should assign data to the given argument.
+- If necessary, it will update the pointer at the beginning of the list.
+*/
+void	ft_list_push_front(t_list **begin_list, void *data) {
+	t_list	*new_front = ft_create_elem(data);
+	if (new_front) {
+		new_front->next = *begin_list;
+	}
+	// @audit-info sets NULL on failed allocation
+	*begin_list = new_front;
+}
+
+void	helper_free_list_data(t_list *begin_list) {
+	assert(begin_list != NULL);
+	t_list	*cur = begin_list;
+	while (cur) {
+		t_list	*next = cur->next;
+		free(cur->data);
+		free(cur);
+		if (!next) {
+			break;
+		}
+		cur = next;
+	}
+}
 
 int	main() {
 	// element creation
@@ -36,20 +67,24 @@ int	main() {
 	assert(created->data == template.data);
 	assert(created->next == template.next);
 	fprintf((stderr), "data contained matches: %s\n", (char *)created->data);
-	free(created);
-	free(somedata);
 	// push element
+	t_list	**dbl_ptr = malloc(sizeof(t_list));
+	assert((dbl_ptr) != NULL);
+	*dbl_ptr = created;
+	char	*nowfirstdata = strdup("should be the first elem: lemme tell you about my friend!");
+	ft_list_push_front(dbl_ptr, nowfirstdata);
+	fprintf((stderr), "first elem: %s\n", (char *)((*dbl_ptr)->data));
+	fprintf((stderr), "second elem: %s\n", (char *)((*dbl_ptr)->next->data));
+	assert(((*dbl_ptr)->next) != NULL);
+	assert(((*dbl_ptr)->next->next) == NULL);
+	// free((*dbl_ptr)->next);
+	// free(*dbl_ptr);
+	// free(somedata);
+	// free(nowfirstdata);
+	helper_free_list_data(*dbl_ptr);
+	free(dbl_ptr);
 }
-/*
-dep: t_list *ft_create_elem(void *data);
-	creates a new element of t_list.
-	- It should assign data to the given argument and next to NULL.
 
-adds a new element (t_list) to the beginning of the list
-- It should assign data to the given argument.
-- If necessary, it will update the pointer at the beginning of the list.
-*/
-void	ft_list_push_front(t_list **begin_list, void *data);
 int		ft_list_size(t_list *begin_list);
 
 /*
