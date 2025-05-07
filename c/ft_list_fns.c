@@ -77,7 +77,18 @@ int	not_cmp(void *ptr_a, void *ptr_b) {
 	return cmp_bubble(ptr_b, ptr_a);
 }
 
-void	test_list_sort() {
+int	is_modulo(void *ptr_a, void *ptr_b) {
+	const int	a = *(int *)ptr_a;
+	const int	b = *(int *)ptr_b;
+	return a % b != 0;
+}
+
+void	ft_list_remove_if(t_list **begin_list, void *data_ref, int (*cmp)(void *, void *), void (*free_fct)(void *));
+void	free_nothing(void *sth) {
+	(void)sth;
+}
+
+void	test_list_sort_remove() {
 	int	arr[5] = {5, 4, 3, 2, 1};
 	int	arr_ordered[5] = {1, 2, 3, 4 ,5};
 	t_list	**dbl_ptr = malloc(sizeof(t_list));
@@ -112,6 +123,14 @@ void	test_list_sort() {
 		assert(arr[i] == *(int *)re_unordered->data);
 		re_unordered = re_unordered->next;
 	}
+	fprintf(stderr, "removing even numbers\n");
+	ft_list_remove_if(dbl_ptr, &arr_ordered[1]/* 2 */, is_modulo, free_nothing);
+	int max_val = ft_list_size(*dbl_ptr);
+	t_list	*only_odd = *dbl_ptr;
+	for (int i = 0; i < max_val; i++) {
+		fprintf(stderr, "%d\n", *(int *)only_odd->data);
+		only_odd = only_odd->next;
+	}
 }
 
 int	main() {
@@ -142,7 +161,7 @@ int	main() {
 	// free(nowfirstdata);
 	helper_free_list_data(*dbl_ptr);
 	free(dbl_ptr);
-	test_list_sort();
+	test_list_sort_remove();
 }
 
 /*
@@ -193,4 +212,26 @@ The data from an element to be erased should be freed using free_fct.
 (*cmp)(list_ptr->data, data_ref);
 (*free_fct)(list_ptr->data);
 */
-void	ft_list_remove_if(t_list **begin_list, void *data_ref, int (*cmp)(), void (*free_fct)(void *));
+void	ft_list_remove_if(t_list **begin_list, void *data_ref, int (*cmp)(void *, void *), void (*free_fct)(void *)) {
+	t_list	*cur = *begin_list;
+	t_list	*prev = NULL;
+	while (cur) {
+		if ((*cmp)(cur->data, data_ref) == 0) {
+			// remove
+			(*free_fct)(cur->data);
+			// update previous element to point to cur->next
+			t_list	*next = cur->next;
+			free(cur);
+			if (!prev) { // removed first element - reset to beginning (next)
+				*begin_list = next;
+				cur = *begin_list;
+			} else { // removed non-first - update self on previous and set self
+				prev->next = next;
+				cur = next;
+			}
+		} else {
+			prev = cur;
+			cur = cur->next;
+		}
+	}
+}
