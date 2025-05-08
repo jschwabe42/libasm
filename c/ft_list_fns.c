@@ -45,12 +45,12 @@ void	ft_list_push_front(t_list **begin_list, void *data) {
 	*begin_list = new_front;
 }
 
-void	helper_free_list_data(t_list *begin_list) {
+void	helper_free_list_data(t_list *begin_list, void (*free_fct)(void *)) {
 	assert(begin_list != NULL);
 	t_list	*cur = begin_list;
 	while (cur) {
 		t_list	*next = cur->next;
-		free(cur->data);
+		free_fct(cur->data);
 		free(cur);
 		if (!next) {
 			break;
@@ -91,7 +91,7 @@ void	free_nothing(void *sth) {
 void	test_list_sort_remove() {
 	int	arr[5] = {5, 4, 3, 2, 1};
 	int	arr_ordered[5] = {1, 2, 3, 4 ,5};
-	t_list	**dbl_ptr = malloc(sizeof(t_list));
+	t_list	**dbl_ptr = malloc(sizeof(t_list *));
 	// @audit-info since prepended arr_ordered used
 	t_list	*last = ft_create_elem(&arr_ordered[0]);
 	*dbl_ptr = last;
@@ -131,6 +131,8 @@ void	test_list_sort_remove() {
 		fprintf(stderr, "%d\n", *(int *)only_odd->data);
 		only_odd = only_odd->next;
 	}
+	helper_free_list_data(*dbl_ptr, free_nothing);
+	free(dbl_ptr);
 }
 
 int	main() {
@@ -145,7 +147,7 @@ int	main() {
 	assert(created->next == template.next);
 	fprintf((stderr), "data contained matches: %s\n", (char *)created->data);
 	// push element
-	t_list	**dbl_ptr = malloc(sizeof(t_list));
+	t_list	**dbl_ptr = malloc(sizeof(t_list *));
 	assert((dbl_ptr) != NULL);
 	*dbl_ptr = created;
 	char	*nowfirstdata = strdup("should be the first elem: lemme tell you about my friend!");
@@ -159,7 +161,7 @@ int	main() {
 	// free(*dbl_ptr);
 	// free(somedata);
 	// free(nowfirstdata);
-	helper_free_list_data(*dbl_ptr);
+	helper_free_list_data(*dbl_ptr, free);
 	free(dbl_ptr);
 	test_list_sort_remove();
 }
