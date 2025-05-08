@@ -12,14 +12,6 @@ typedef struct s_list
 }	t_list;
 
 t_list  *ft_create_elem(void *data) {
-	// clean direct field copy
-	// const t_list template = (struct s_list){.data = data, .next = NULL};
-	// t_list	*new = malloc(sizeof(t_list));
-	// if (new == NULL) {
-		// 	return NULL;
-	// }
-	// memcpy(new, &template, sizeof(t_list));
-	// simple non-stack memory
 	t_list	*new = malloc(sizeof(t_list));
 	if (new != NULL) {
 		new->data = data;
@@ -41,7 +33,7 @@ void	ft_list_push_front(t_list **begin_list, void *data) {
 	if (new_front) {
 		new_front->next = *begin_list;
 	}
-	// @audit-info sets NULL on failed allocation
+	// @audit-info sets NULL on failed allocation: new_front is set
 	*begin_list = new_front;
 }
 
@@ -88,6 +80,13 @@ void	free_nothing(void *sth) {
 	(void)sth;
 }
 
+int	cmp_is_equal_or_data_null(void *data, void *cmp) {
+	if (((data && cmp) && *(int *)data == *(int *)cmp) || !cmp) {
+		return 0;
+	}
+	return 1;
+}
+
 void	test_list_sort_remove() {
 	int	arr[5] = {5, 4, 3, 2, 1};
 	int	arr_ordered[5] = {1, 2, 3, 4 ,5};
@@ -123,18 +122,32 @@ void	test_list_sort_remove() {
 		assert(arr[i] == *(int *)re_unordered->data);
 		re_unordered = re_unordered->next;
 	}
+	#define A
+	#ifdef A // A: should only remove even
 	fprintf(stderr, "removing even numbers\n");
 	ft_list_remove_if(dbl_ptr, &arr_ordered[1]/* 2 */, is_modulo, free_nothing);
+	#elif defined (B) // B: remove last 2, become 543
+	ft_list_remove_if(dbl_ptr, &arr_ordered[0], cmp_is_equal_or_data_null, free_nothing);
+	ft_list_remove_if(dbl_ptr, &arr_ordered[1], cmp_is_equal_or_data_null, free_nothing);
+	#elif defined(C) // remove all elements
+	ft_list_remove_if(dbl_ptr, NULL, cmp_is_equal_or_data_null, free_nothing);
+	#endif
 	int max_val = ft_list_size(*dbl_ptr);
 	t_list	*only_odd = *dbl_ptr;
+	fprintf(stderr, "\n");
 	for (int i = 0; i < max_val; i++) {
 		fprintf(stderr, "%d\n", *(int *)only_odd->data);
 		only_odd = only_odd->next;
 	}
+	#ifndef C// will abort if ran with C
 	helper_free_list_data(*dbl_ptr, free_nothing);
+	#endif
 	free(dbl_ptr);
 }
 
+int	strcmp_adapter(void *a, void *b) {
+	return strcmp((const char *)a, (const char *)b);
+}
 int	main() {
 	// element creation
 	char	*somedata = strdup("my_secret at 0x0");
@@ -157,10 +170,15 @@ int	main() {
 	assert(((*dbl_ptr)->next) != NULL);
 	assert(((*dbl_ptr)->next->next) == NULL);
 	assert(ft_list_size(*dbl_ptr) == 2);
-	// free((*dbl_ptr)->next);
-	// free(*dbl_ptr);
-	// free(somedata);
-	// free(nowfirstdata);
+	assert(strcmp("should be the first elem: lemme tell you about my friend!", "my_secret at 0x0") > 0);
+	ft_list_sort(dbl_ptr, strcmp_adapter);
+	fprintf(stderr, "\n------\nstrcmp sorted!\n\n");
+	t_list	*check_sorted = *dbl_ptr;
+	// strcmp == 0 if equal
+	assert(!strcmp("my_secret at 0x0", (const char *)check_sorted->data));
+	assert(!strcmp("should be the first elem: lemme tell you about my friend!", (const char *)check_sorted->next->data));
+	// fprintf(stderr, "%s\n", (char *)check_sorted->data);// swap
+	// fprintf(stderr, "%s\n", (char *)check_sorted->next->data);// no longer first elem
 	helper_free_list_data(*dbl_ptr, free);
 	free(dbl_ptr);
 	test_list_sort_remove();
@@ -173,37 +191,27 @@ by comparing two elements and their data using a comparison function
 (*cmp)(list_ptr->data, list_other_ptr->data); (cmp such as strcmp)
 */
 void	ft_list_sort(t_list** lst, int (*cmp)(void *, void *)) {
-	// @audit check head movement!
-	// basically bubble sort
 	t_list	*cur = *lst;
 	t_list	*next = (*lst)->next;
-	// int should_do = (*cmp)(list_ptr->data, list_other_ptr->data)
-	// if (should_do > 0) -> strcmp has negative values, != is not sufficient!
 	bool	sorted = false;
 	while (!sorted) {
 		sorted = true;
 		while (cur && next) {
 			if (cmp(cur->data, next->data) > 0) {
 				sorted = false;
-				// @audit check if head is being swapped:
-				// obsolete by only swapping data assignments
-				// if (cur == *lst) {
-				// 	*lst = next;
-				// }
-				// swap data only: ptr invalidation to data
+				// @audit-info only data is changed, the head will not move
 				void	*tmp_cur = cur->data;
 				cur->data = next->data;
 				next->data = tmp_cur;
 			}
 			// advance
-			cur = cur->next;
+			cur = next;
 			next = next->next;
 		}
 		// reset to head @audit-info
 		cur = *lst;
 		next = (*lst)->next;
 	}
-	// make sure new head is correctly set! @audit
 }
 
 /*
