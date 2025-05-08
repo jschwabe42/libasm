@@ -64,7 +64,7 @@ void	helper_free_list_data(t_list *begin_list, void (*free_fct)(void *)) {
 int	main() {
 	// element creation
 	char	*somedata = strdup("my_secret at 0x0");
-	const t_list template = (struct s_list){.data = NULL, .next = NULL};
+	const t_list template = (struct s_list){.data = somedata, .next = NULL};
 	t_list	*created = ft_create_elem(somedata);
 	// assert(ft_list_size(NULL) == 0);
 	// assert(ft_list_size(created) == 1);
