@@ -1,11 +1,16 @@
 NAME = libasm.a
 SRC = strlen strcmp strcpy write
-B_SRC = atoi_base
+B_SRC = atoi_base linked_list
 ASM = $(foreach src,$(SRC),$(src)/ft_$(src).s)
 OBJ = $(foreach src,$(SRC),$(src)/ft_$(src).o)
 M_OBJ = $(foreach src,$(SRC),$(src)/main.o)
 
 all: $(NAME)
+# @remind (relinking) bonus rule for part - nothing is forbidden in main part, naming conventions do not apply for .s
+# @audit-ok malloc only in list functions & strdup implementation
+# @audit-ok testing main has to be able to "compile" with the "library to show that it’s functional": not needed in makefile - link from anywhere
+# @audit precondition: currently relinking (because of dirmake breaking tracking)
+# @audit Your code must set the variable errno properly.
 bonus:
 	$(MAKE) SRC="$(SRC) $(B_SRC)" all
 # build the library
