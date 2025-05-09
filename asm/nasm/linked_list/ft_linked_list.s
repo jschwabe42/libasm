@@ -37,27 +37,20 @@ _ft_create_elem:
 ; rsi: *data
 _ft_list_push_front:
 	enter 0, 0
-	push qword rbx
-	push qword rsi ; [rsp + 8]
 	push qword rdi ; [rsp]
-
-	mov rcx, [rsp]
-	mov rdx, [rcx]
-	mov rbx, rdx; at this point is created
-	mov rdi, [rdx]; created - data
-	; call _puts
-	mov rcx, [rsp]
-	mov rdi, [rsp + 8]
+.elem_node:
+	mov rdi, rsi
 	call _ft_create_elem ; *new
 	test rax, rax
-	jz .return
-	; rax ptr
+	; rax contains ptr to new
 	; [rax] data
 	; [rax + 8] next ptr
-	; mov qword [rbx + 8], qword rax; FUCK This sets current->next = new
-	mov [rax + 8], rbx ; new->next = cur
-	mov rcx, [rsp] ; **list
-	mov [rcx], rax ; *list = new
+	jz .return
+.update_ptrs:
+	mov rcx, qword [rsp]; store **list at rcx
+	push qword [rcx]; push *list == cur (save head)
+	mov [rcx], rax ; *list = new (discard [rcx])
+	pop qword [rax + NEXT_OFFSET]; new->next = cur
 .return:
 	leave
 	ret
