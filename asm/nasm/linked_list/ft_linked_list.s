@@ -10,6 +10,7 @@ section .data
 section .text
 global _ft_create_elem
 global _ft_list_push_front
+global _ft_list_size
 extern _puts
 
 ; input in rdi: data ptr
@@ -53,4 +54,20 @@ _ft_list_push_front:
 	pop qword [rax + NEXT_OFFSET]; new->next = cur
 .return:
 	leave
+	ret
+
+; rdi *list
+_ft_list_size:
+	mov r8, rdi; cur
+	mov rax, 0
+.loop_cond:
+	test r8, r8
+	jz .return_len
+	inc rax
+.loop_body:
+	mov r9, [r8 + NEXT_OFFSET]; next
+	test r9, r9
+	mov r8, r9
+	jnz .loop_cond
+.return_len:
 	ret

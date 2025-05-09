@@ -15,8 +15,7 @@ typedef struct s_list
 
 extern t_list	*ft_create_elem(void *data);// @note testing only!
 extern void		*ft_list_push_front(t_list **begin_list, void *data);
-// extern void	ft_list_remove_if(t_list **begin_list, void *data_ref, int (*cmp)(void *, void *), void (*free_fct)(void *));
-// extern int	ft_list_size(t_list *begin_list);
+extern int		ft_list_size(t_list *begin_list);
 // extern void	ft_list_sort(t_list** lst, int (*cmp)(void *, void *));
 // extern void	ft_list_remove_if(t_list **begin_list, void *data_ref, int (*cmp)(void *, void *), void (*free_fct)(void *));
 
@@ -61,7 +60,7 @@ void	helper_free_list_data(t_list *begin_list, void (*free_fct)(void *)) {
 		cur = next;
 	}
 }
-int		ft_list_size(t_list *begin_list) {
+int		c_list_size(t_list *begin_list) {
 	t_list	*cur = begin_list; // local: could just use begin_list
 	int	len = 0;
 	while (cur && ++len) {
@@ -75,8 +74,8 @@ int	main() {
 	char	*somedata = strdup("HAS_TO_BE_END");
 	const t_list template = (struct s_list){.data = somedata, .next = NULL};
 	t_list	*created_first = ft_create_elem(somedata);
-	assert(ft_list_size(NULL) == 0);
-	assert(ft_list_size(created_first) == 1);
+	assert(ft_list_size(NULL) == c_list_size(NULL));
+	assert(ft_list_size(created_first) == c_list_size(created_first));
 	assert(created_first != NULL);
 	assert(created_first->data == template.data);
 	assert(created_first->next == template.next);
@@ -92,7 +91,7 @@ int	main() {
 	assert(*dbl_ptr != NULL);
 	assert(((*dbl_ptr)->next) != NULL);
 	assert(((*dbl_ptr)->next->next) == NULL);
-	assert(ft_list_size(*dbl_ptr) == 2);
+	assert(ft_list_size(*dbl_ptr) == c_list_size(*dbl_ptr));
 	fprintf((stderr), "DBL: **%p\n", dbl_ptr);
 	fprintf((stderr), "first: %s at *%p in %p - next: %p\n", (char *)((*dbl_ptr)->data),((*dbl_ptr)->data), *dbl_ptr, (*dbl_ptr)->next);
 	fprintf((stderr), "second: %s at %p in %p - next: %p\n", (char *)((*dbl_ptr)->next->data), ((*dbl_ptr)->next->data), ((*dbl_ptr)->next),(*dbl_ptr)->next->next);
