@@ -45,23 +45,19 @@ _ft_list_push_front:
 	mov rdx, [rcx]
 	mov rbx, rdx; at this point is created
 	mov rdi, [rdx]; created - data
-	call _puts
+	; call _puts
 	mov rcx, [rsp]
 	mov rdi, [rsp + 8]
-	call _ft_create_elem ; *new_front
+	call _ft_create_elem ; *new
 	test rax, rax
 	jz .return
 	; rax ptr
 	; [rax] data
 	; [rax + 8] next ptr
-	; mov rcx, qword [rsp] ; *begin_elem that gets push
-	; mov rdi, [rcx] ; begin_elem->next
-	; mov rax, [rcx + 8]
-	; lea rax, [rcx + 8]
-	; mov r8, qword rax; [rbx + 8] is next_ptr
-	mov qword [rbx + 8], qword rax; both created
-	; mov qword [rbx + 8], qword rax; [rbx + 8] is next_ptr
-	; mov qword [rax], 
+	; mov qword [rbx + 8], qword rax; FUCK This sets current->next = new
+	mov [rax + 8], rbx ; new->next = cur
+	mov rcx, [rsp] ; **list
+	mov [rcx], rax ; *list = new
 .return:
 	leave
 	ret

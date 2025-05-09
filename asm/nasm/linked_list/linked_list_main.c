@@ -72,40 +72,31 @@ int		ft_list_size(t_list *begin_list) {
 
 int	main() {
 	// element creation
-	char	*somedata = strdup("my_secret");
+	char	*somedata = strdup("HAS_TO_BE_END");
 	const t_list template = (struct s_list){.data = somedata, .next = NULL};
-	t_list	*created = ft_create_elem(somedata);
+	t_list	*created_first = ft_create_elem(somedata);
 	assert(ft_list_size(NULL) == 0);
-	assert(ft_list_size(created) == 1);
-	assert(created != NULL);
-	assert(created->data == template.data);
-	assert(created->next == template.next);
-	// fprintf((stderr), "data contained matches: %s\n", (char *)created->data);
+	assert(ft_list_size(created_first) == 1);
+	assert(created_first != NULL);
+	assert(created_first->data == template.data);
+	assert(created_first->next == template.next);
 	// push element
 	t_list	**dbl_ptr = calloc(sizeof(t_list *), 1);
-	*dbl_ptr = created;
+	*dbl_ptr = created_first;
 	assert((dbl_ptr) != NULL);
-	// *dbl_ptr = created;
-	char	*nowfirstdata = strdup("pushed_away");
-	fprintf((stderr), "dbl: **%p has - *%p\n", dbl_ptr, *dbl_ptr);
-	fprintf((stderr), "A: %s - %p in - %p\n", (char *)((*dbl_ptr)->data), ((*dbl_ptr)->data), *dbl_ptr);
-	void	*poke = ft_list_push_front(dbl_ptr, nowfirstdata);
-	fprintf((stderr), "poke: %p\n", poke);
-	assert(poke != NULL);
+	char	*nowfirstdata = strdup("START");
+	fprintf((stderr), "DBL: **%p has - *%p\n", dbl_ptr, *dbl_ptr);
+	fprintf((stderr), "created_first: %s at %p in - *%p\n", (char *)((*dbl_ptr)->data), ((*dbl_ptr)->data), *dbl_ptr);
+	fprintf((stderr), "pushing...:\n");
+	ft_list_push_front(dbl_ptr, nowfirstdata);
 	assert(*dbl_ptr != NULL);
-	// fprintf((stderr), "dbl: **%p has - *%p\n", dbl_ptr, *dbl_ptr);
-	// fprintf((stderr), "B: %s - %p in - %p\n", (char *)((*dbl_ptr)->data), ((*dbl_ptr)->data), *dbl_ptr);
-	// fprintf((stderr), "next ptr mem: %p\n", (*dbl_ptr)->next);
-	// fprintf((stderr), "created next ptr: %p\n", (*dbl_ptr)->next->next);
-	// fprintf((stderr), "created data: %s - %p in %p\n", (char *)((created)->data),((created)->data), created);
 	assert(((*dbl_ptr)->next) != NULL);
-	// fprintf((stderr), "second elem: %s - %p in %p\n", (char *)((*dbl_ptr)->next->data), ((*dbl_ptr)->next), *dbl_ptr);
 	assert(((*dbl_ptr)->next->next) == NULL);
 	assert(ft_list_size(*dbl_ptr) == 2);
-	fprintf((stderr), "DBL: %p\n", dbl_ptr);
-	fprintf((stderr), "first: %s at %p in %p - next: %p\n", (char *)((*dbl_ptr)->data),((*dbl_ptr)->data), *dbl_ptr, (*dbl_ptr)->next);
-	fprintf((stderr), "second: %s - %p in %p - next: %p\n", (char *)((*dbl_ptr)->next->data), ((*dbl_ptr)->next->data), ((*dbl_ptr)->next),(*dbl_ptr)->next->next);
-	assert(created->next == NULL);
+	fprintf((stderr), "DBL: **%p\n", dbl_ptr);
+	fprintf((stderr), "first: %s at *%p in %p - next: %p\n", (char *)((*dbl_ptr)->data),((*dbl_ptr)->data), *dbl_ptr, (*dbl_ptr)->next);
+	fprintf((stderr), "second: %s at %p in %p - next: %p\n", (char *)((*dbl_ptr)->next->data), ((*dbl_ptr)->next->data), ((*dbl_ptr)->next),(*dbl_ptr)->next->next);
+	assert(created_first->next == NULL);
 
 	helper_free_list_data(*dbl_ptr, free);
 	free(dbl_ptr);
