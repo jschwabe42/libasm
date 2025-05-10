@@ -32,9 +32,9 @@ void	ft_list_push_front(t_list **begin_list, void *data) {
 	t_list	*new_front = ft_create_elem(data);
 	if (new_front) {
 		new_front->next = *begin_list;
+		*begin_list = new_front;
 	}
-	// @audit-info sets NULL on failed allocation: new_front is set
-	*begin_list = new_front;
+	// no way to set NULL on failed allocation without causing leaks
 }
 
 void	helper_free_list_data(t_list *begin_list, void (*free_fct)(void *)) {
@@ -150,35 +150,33 @@ int	strcmp_adapter(void *a, void *b) {
 }
 int	main() {
 	// element creation
-	char	*somedata = strdup("my_secret at 0x0");
+	char	*somedata = strdup("HAS_TO_BE_END");
 	const t_list template = (struct s_list){.data = somedata, .next = NULL};
-	t_list	*created = ft_create_elem(somedata);
+	t_list	*created_first = ft_create_elem(somedata);
 	assert(ft_list_size(NULL) == 0);
-	assert(ft_list_size(created) == 1);
-	assert(created != NULL);
-	assert(created->data == template.data);
-	assert(created->next == template.next);
-	fprintf((stderr), "data contained matches: %s\n", (char *)created->data);
+	assert(ft_list_size(created_first) == 1);
+	assert(created_first != NULL);
+	assert(created_first->data == template.data);
+	assert(created_first->next == template.next);
+	fprintf((stderr), "created: %s\n", (char *)created_first->data);
 	// push element
 	t_list	**dbl_ptr = malloc(sizeof(t_list *));
-	assert((dbl_ptr) != NULL);
-	*dbl_ptr = created;
-	char	*nowfirstdata = strdup("should be the first elem: lemme tell you about my friend!");
+	*dbl_ptr = created_first;
+	assert(dbl_ptr != NULL);
+	char	*nowfirstdata = strdup("START");
+	fprintf((stderr), "DBL: **%p has - *%p\n", dbl_ptr, *dbl_ptr);
+	fprintf((stderr), "created_first: %s at %p in - *%p\n", (char *)((*dbl_ptr)->data), ((*dbl_ptr)->data), *dbl_ptr);
+	fprintf((stderr), "pushing...:\n");
 	ft_list_push_front(dbl_ptr, nowfirstdata);
-	fprintf((stderr), "first elem: %s\n", (char *)((*dbl_ptr)->data));
-	fprintf((stderr), "second elem: %s\n", (char *)((*dbl_ptr)->next->data));
+	assert(*dbl_ptr != NULL);
 	assert(((*dbl_ptr)->next) != NULL);
 	assert(((*dbl_ptr)->next->next) == NULL);
 	assert(ft_list_size(*dbl_ptr) == 2);
-	assert(strcmp("should be the first elem: lemme tell you about my friend!", "my_secret at 0x0") > 0);
-	ft_list_sort(dbl_ptr, strcmp_adapter);
-	fprintf(stderr, "\n------\nstrcmp sorted!\n\n");
-	t_list	*check_sorted = *dbl_ptr;
-	// strcmp == 0 if equal
-	assert(!strcmp("my_secret at 0x0", (const char *)check_sorted->data));
-	assert(!strcmp("should be the first elem: lemme tell you about my friend!", (const char *)check_sorted->next->data));
-	// fprintf(stderr, "%s\n", (char *)check_sorted->data);// swap
-	// fprintf(stderr, "%s\n", (char *)check_sorted->next->data);// no longer first elem
+	fprintf((stderr), "DBL: **%p\n", dbl_ptr);
+	fprintf((stderr), "first: %s at *%p in %p - next: %p\n", (char *)((*dbl_ptr)->data),((*dbl_ptr)->data), *dbl_ptr, (*dbl_ptr)->next);
+	fprintf((stderr), "second: %s at %p in %p - next: %p\n", (char *)((*dbl_ptr)->next->data), ((*dbl_ptr)->next->data), ((*dbl_ptr)->next),(*dbl_ptr)->next->next);
+	assert(created_first->next == NULL);
+
 	helper_free_list_data(*dbl_ptr, free);
 	free(dbl_ptr);
 	test_list_sort_remove();
