@@ -101,21 +101,20 @@ _ft_list_sort:
 .run_cmp:
 	; rdi: cur->data
 	mov rdi, qword [r12]; @audit
-	push rdi
-	call _puts
-	pop rdi
 	; rsi: next->data
 	mov rsi, qword [r13]; @audit
 	call rbx; (*cmp)
-	cmp rax, 0
-	jle .inner_loop_advance
+	cmp rax, 1
+	jl .inner_loop_advance
 .swap:
 	; rax > 0 @audit ptrs!
 	mov r14b, 0; sorted = false
-	mov rdi, qword [r12]; tmp = cur->data
-	mov rsi, qword [r13]; next->data
-	mov rdi, rsi; cur->data = next->data;
-	mov rsi, rdi; next->data = tmp
+	push qword [r12]; push cur->data
+	push qword [r13]; push next->data
+	pop qword r8; next->data
+	mov [r12], r8
+	pop qword r9; cur->data
+	mov [r13], r9
 .inner_loop_advance:
 	mov r12, r13; cur = next
 	mov rdi, [r13 + NEXT_OFFSET]
@@ -123,11 +122,11 @@ _ft_list_sort:
 	jmp .inner_loop_cond
 .outer_loop_iter:
 	; deref rdi at [rsp]
-	mov rdi, [rsp]; **list @audit
+	mov rdi, [rsp]; *list @audit
 	; cur = *list
-	mov r12, [rdi]; @follow-up is the value correct?
+	mov r12, rdi; @follow-up is the value correct?
 	; next = (*list)->next
-	mov r13, qword [r12 + 8]
+	mov r13, qword [r12 + NEXT_OFFSET]
 	jmp .outer_loop_cond
 .return:
 	leave
