@@ -16,7 +16,7 @@ typedef struct s_list
 extern t_list	*ft_create_elem(void *data);// @note testing only!
 extern void		*ft_list_push_front(t_list **begin_list, void *data);
 extern int		ft_list_size(t_list *begin_list);
-// extern void	ft_list_sort(t_list** lst, int (*cmp)(void *, void *));
+extern void		ft_list_sort(t_list** lst, int (*cmp)(void *, void *));
 // extern void	ft_list_remove_if(t_list **begin_list, void *data_ref, int (*cmp)(void *, void *), void (*free_fct)(void *));
 
 // @audit-info testing utils

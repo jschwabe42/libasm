@@ -11,6 +11,7 @@ section .text
 global _ft_create_elem
 global _ft_list_push_front
 global _ft_list_size
+global _ft_list_sort
 extern _puts
 
 ; input in rdi: data ptr
@@ -70,4 +71,64 @@ _ft_list_size:
 	mov r8, r9
 	jnz .loop_cond
 .return_len:
+	ret
+
+; rdi **list
+; rsi (*cmp)
+_ft_list_sort:
+	enter 0, 0
+	; preserve registers: callee-save
+	push qword rbx; [rsp + 32]
+	mov rbx, rsi; put cmp fnptr in callee-save rbx
+	push qword r12; [rsp + 24]
+	mov r12, qword [rdi]; cur = *list
+	push qword r13; [rsp + 16]
+	mov r13, qword [r12 + NEXT_OFFSET]; (*list)->next
+	push qword r14; [rsp + 8]
+	mov r14, 0; bool: sorted?
+	; preserve **list
+	push qword rdi; [rsp]
+.outer_loop_cond:
+	test r14b, r14b
+	jnz .return
+	mov r14b, 1; sorted = true
+.inner_loop_cond:
+	test r12, r12; cur
+	jz .outer_loop_iter
+	test r13, r13; next
+	jz .outer_loop_iter
+	; neither is null!
+.run_cmp:
+	; rdi: cur->data
+	mov rdi, qword [r12]; @audit
+	push rdi
+	call _puts
+	pop rdi
+	; rsi: next->data
+	mov rsi, qword [r13]; @audit
+	call rbx; (*cmp)
+	cmp rax, 0
+	jle .inner_loop_advance
+.swap:
+	; rax > 0 @audit ptrs!
+	mov r14b, 0; sorted = false
+	mov rdi, qword [r12]; tmp = cur->data
+	mov rsi, qword [r13]; next->data
+	mov rdi, rsi; cur->data = next->data;
+	mov rsi, rdi; next->data = tmp
+.inner_loop_advance:
+	mov r12, r13; cur = next
+	mov rdi, [r13 + NEXT_OFFSET]
+	mov r13, rdi; next = next->next
+	jmp .inner_loop_cond
+.outer_loop_iter:
+	; deref rdi at [rsp]
+	mov rdi, [rsp]; **list @audit
+	; cur = *list
+	mov r12, [rdi]; @follow-up is the value correct?
+	; next = (*list)->next
+	mov r13, qword [r12 + 8]
+	jmp .outer_loop_cond
+.return:
+	leave
 	ret
