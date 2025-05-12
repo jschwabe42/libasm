@@ -1,25 +1,24 @@
 default rel
 
-extern _malloc
-extern ___error
+extern malloc
+extern __errno_location
 
 section .data
 	ELEM_SIZE equ 16
 	NEXT_OFFSET equ 8
 
 section .text
-global _ft_create_elem
-global _ft_list_push_front
-global _ft_list_size
-extern _puts
+global ft_create_elem
+global ft_list_push_front
+global ft_list_size
 
 ; input in rdi: data ptr
 ; return t_list *self
-_ft_create_elem:
+ft_create_elem:
 	enter 0, 0
 	push rdi
 	mov rdi, ELEM_SIZE
-	call _malloc
+	call malloc wrt ..plt
 	test rax, rax
 	jz .error_malloc
 	; rax has 16 bytes
@@ -28,7 +27,7 @@ _ft_create_elem:
 	leave
 	ret
 .error_malloc:
-	call ___error
+	call __errno_location wrt ..plt
 	mov qword [rax], 12 ; ENOMEM
 	xor rax, rax
 	leave
@@ -36,12 +35,12 @@ _ft_create_elem:
 
 ; rdi: **list
 ; rsi: *data
-_ft_list_push_front:
+ft_list_push_front:
 	enter 0, 0
 	push qword rdi ; [rsp]
 .elem_node:
 	mov rdi, rsi
-	call _ft_create_elem ; *new
+	call ft_create_elem ; *new
 	test rax, rax
 	; rax contains ptr to new
 	; [rax] data
@@ -57,7 +56,7 @@ _ft_list_push_front:
 	ret
 
 ; rdi *list
-_ft_list_size:
+ft_list_size:
 	mov r8, rdi; cur
 	mov rax, 0
 .loop_cond:

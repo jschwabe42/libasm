@@ -1,5 +1,5 @@
 #!/bin/sh
 
-nasm -f macho64 ft_write.s -o ft_write.o 
-cc -Wall -Wextra -Werror -arch x86_64 -c write_main.c -o main.o
-cc -Wall -Wextra -Werror -arch x86_64 main.o ft_write.o -o test_write.out
+nasm -f elf64 ft_write.s -o ft_write.o 
+clang -Wall -Wextra -Werror -g3 -c write_main.c -o main.o
+clang -Wall -Wextra -Werror -g3 main.o ft_write.o -o test_write.out

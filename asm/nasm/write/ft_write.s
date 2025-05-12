@@ -1,19 +1,20 @@
-extern ___error
+extern __errno_location
 
 section .text
-global _ft_write
+global ft_write
 
 ; input: int fildes, const void *buf, size_t nbyte
 ; input in rdi, rsi, rdx
-_ft_write:
-	mov rax, 0x2000004 ; MacOS 0x2000000 + 4
+ft_write:
+	mov rax, 1 ; MacOS 0x2000000 + 4, linux 1
 	syscall
-	jc .error_syscall
+	cmp rax, 0
+	jl .error_syscall
 	ret
 .error_syscall:
 	; save syscall return valueö set global error variable
 	mov rdx, rax
-	call ___error
+	call __errno_location wrt ..plt
 	mov [rax], edx
 	mov rax, -1
 	ret
