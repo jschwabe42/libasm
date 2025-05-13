@@ -8,13 +8,7 @@ section .data
 	NEXT_OFFSET equ 8
 
 section .text
-extern _print_dbg_list
-extern _debug_outer_iter
-extern _debug_outer_iter_done
-extern _debug_inner_cmp
-extern _debug_inner_cond
-extern _debug_outer_cond
-extern _debug_outer_cond_complete
+; extern _print_dbg_list
 global _ft_create_elem
 global _ft_list_push_front
 global _ft_list_size
@@ -37,7 +31,7 @@ _ft_create_elem:
 	ret
 .error_malloc:
 	call ___error
-	mov qword [rax], 12 ; ENOMEM
+	mov qword [rax], 12; ENOMEM
 	xor rax, rax
 	leave
 	ret
@@ -46,10 +40,10 @@ _ft_create_elem:
 ; rsi: *data
 _ft_list_push_front:
 	enter 0, 0
-	push qword rdi ; [rsp]
+	push qword rdi; [rsp]
 .elem_node:
 	mov rdi, rsi
-	call _ft_create_elem ; *new
+	call _ft_create_elem; *new
 	test rax, rax
 	; rax contains ptr to new
 	; [rax] data
@@ -58,7 +52,7 @@ _ft_list_push_front:
 .update_ptrs:
 	mov rcx, qword [rsp]; store **list at rcx
 	push qword [rcx]; push *list == cur (save head)
-	mov [rcx], rax ; *list = new (discard [rcx])
+	mov [rcx], rax; *list = new (discard [rcx])
 	pop qword [rax + NEXT_OFFSET]; new->next = cur
 .return:
 	leave
@@ -99,10 +93,10 @@ lswap:
 	pop rdi; next
 	xor rax, rax
 
-	mov r8, qword [rdi]  ; cur->data == tmp
-	mov r9, qword [rsi]  ; next->data
-	mov [rdi], r9  ; cur->data = next->data
-	mov [rsi], r8  ; next->data = tmp
+	mov r8, qword [rdi]; cur->data == tmp
+	mov r9, qword [rsi]; next->data
+	mov [rdi], r9; cur->data = next->data
+	mov [rsi], r8; next->data = tmp
 .return:
 	leave
 	ret
@@ -133,18 +127,15 @@ reset_to_head:
 _ft_list_sort:
 	enter 0, 0
 	; preserve registers: callee-save
-	push r14
-	push  r12; [rsp + 24]
+	push qword r14
+	push qword r12; [rsp + 24]
 	mov r12, qword [rdi]; cur = *list
-	push  r13; [rsp + 16]
+	push qword r13; [rsp + 16]
 	mov r13, qword [r12 + NEXT_OFFSET]; (*list)->next
 	mov r14, 0; bool: sorted?
 	; preserve input
 	push  rsi; [rsp + 8] cmp
 	push  rdi; [rsp] **list
-	; print unsorted list
-	mov rdi, [rdi]
-	call _print_dbg_list
 .outer_loop_cond:
 	cmp r14, 0
 	je .set_sorted
@@ -159,8 +150,8 @@ _ft_list_sort:
 	jz .outer_loop_iter
 	; neither is null!
 	mov rdx, [rsp + 8]; cmp
-	mov rdi,  r12; rdi: cur
-	mov rsi,  r13; rsi: next
+	mov rdi, r12; rdi: cur
+	mov rsi, r13; rsi: next
 	call lswap; cur, next, cmp
 	cmp rax, r14
 	jne .not_sorted
@@ -168,18 +159,18 @@ _ft_list_sort:
 .not_sorted:
 	mov r14, 0
 .inner_loop_advance:
-	push  r12
-	push  r13
+	push r12
+	push r13
 	lea rdi, [rsp + 8]; &cur
 	lea rsi, [rsp]; &next
 	call advance
-	pop  r13
-	pop  r12
+	pop r13
+	pop r12
 	jmp .inner_loop_cond
-.outer_loop_iter: ; @audit-ok
-	mov rdi, [rsp]; **list @audit-ok
-	push  r12
-	push  r13
+.outer_loop_iter:
+	mov rdi, [rsp]; **list
+	push r12
+	push r13
 	; load adresses
 	lea rsi, [rsp + 8]
 	lea rdx, [rsp]

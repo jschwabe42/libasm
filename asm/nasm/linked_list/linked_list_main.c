@@ -6,7 +6,6 @@
 #include <stdbool.h>
 
 // @note for c only!
-// @todo define in asm
 typedef struct s_list
 {
 	void			*data;
@@ -69,14 +68,6 @@ extern int		ft_list_sort(t_list** lst, int (*cmp)(void *, void *));
 int	cmp_bubble(void *ptr_a, void *ptr_b) {
 	const int	a = *(int *)ptr_a;
 	const int	b = *(int *)ptr_b;
-	// #define DBG_CMP
-	#ifdef DBG_CMP
-	if (a > b) {
-		fprintf(stderr, "a > b: %d\n", a - b);
-	} else {
-		fprintf(stderr, "a < b: %d\n", a - b);
-	}
-	#endif
 	return a - b;
 }
 int	not_cmp(void *ptr_a, void *ptr_b) {
@@ -121,29 +112,9 @@ int		c_list_size(t_list *begin_list) {
 	return len;
 }
 
-void	debug_inner_cmp() {
-	fprintf(stderr, "cmp: inner start!\n");
-}
-void	debug_inner_cond() {
-	fprintf(stderr, "cond: inner!\n");
-}
-void	debug_outer_cond() {
-	fprintf(stderr, "cond: outer!\n");
-}
-void	debug_outer_cond_complete() {
-	fprintf(stderr, "cond: outer complete!\n");
-}
-void	debug_outer_iter() {
-	fprintf(stderr, "iter outer!\n");
-}
-void	debug_outer_iter_done() {
-	fprintf(stderr, "next outer!\n");
-}
-
-
 bool	swap(t_list *cur, t_list *next, int (*cmp)(void *, void *)) {
 	bool ret = true;
-	if ((*cmp)(cur->data, next->data) > 0) {
+	if (cmp(cur->data, next->data) > 0) {
 		ret = false;
 		void	*tmp_cur = cur->data;
 		cur->data = next->data;
