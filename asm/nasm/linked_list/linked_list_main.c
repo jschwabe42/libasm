@@ -69,11 +69,14 @@ extern int		ft_list_sort(t_list** lst, int (*cmp)(void *, void *));
 int	cmp_bubble(void *ptr_a, void *ptr_b) {
 	const int	a = *(int *)ptr_a;
 	const int	b = *(int *)ptr_b;
+	// #define DBG_CMP
+	#ifdef DBG_CMP
 	if (a > b) {
 		fprintf(stderr, "a > b: %d\n", a - b);
 	} else {
 		fprintf(stderr, "a < b: %d\n", a - b);
 	}
+	#endif
 	return a - b;
 }
 int	not_cmp(void *ptr_a, void *ptr_b) {
@@ -206,13 +209,13 @@ void	test_list_sort() {
 		assert(arr_ordered[i] == *(int *)check_sorted->data);
 		check_sorted = check_sorted->next;
 	}
-	// assert(not_cmp(&arr[0], &arr[1]) < 0);
-	// ft_list_sort(dbl_ptr, not_cmp);
-	// t_list	*re_unordered = *dbl_ptr;
-	// for (int i = 0; i < 5; i++) {
-	// 	assert(arr[i] == *(int *)re_unordered->data);
-	// 	re_unordered = re_unordered->next;
-	// }
+	assert(not_cmp(&arr[0], &arr[1]) < 0);
+	ft_list_sort(dbl_ptr, not_cmp);
+	t_list	*re_unordered = *dbl_ptr;
+	for (int i = 0; i < 5; i++) {
+		assert(arr[i] == *(int *)re_unordered->data);
+		re_unordered = re_unordered->next;
+	}
 }
 
 int	main() {

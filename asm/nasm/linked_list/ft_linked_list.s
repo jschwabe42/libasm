@@ -95,16 +95,18 @@ _ft_list_sort:
 	push  r13; [rsp + 16]
 	mov r13, qword [r12 + NEXT_OFFSET]; (*list)->next
 	mov r14, 0; bool: sorted?
+	; preserve input
 	push  rsi; [rsp + 8] cmp
 	push  rdi; [rsp] **list
+	; print unsorted list
 	mov rdi, [rdi]
 	call _print_dbg_list
 .outer_loop_cond:
 	cmp r14, 0
-	je .var_init
+	je .set_sorted
 	leave
 	ret
-.var_init:
+.set_sorted:
 	mov r14, 1
 .inner_loop_cond:
 	test r12, r12; cur
@@ -113,43 +115,31 @@ _ft_list_sort:
 	jz .outer_loop_iter
 	; neither is null!
 	mov rdx, [rsp + 8]; cmp
-	push  r12
-	push  r13
-	
-	mov rdi,  [rsp + 8]; rdi: cur->data
-
-	mov rsi,  [rsp]; rsi: next->data
-
-	call _swap; this asserts rdx > 0 @audit violated
+	mov rdi,  r12; rdi: cur
+	mov rsi,  r13; rsi: next
+	call _swap; cur, next, cmp
 	cmp rax, r14
 	jne .not_sorted
 	jmp .inner_loop_advance
 .not_sorted:
 	mov r14, 0
 .inner_loop_advance:
-	pop r13
-	pop r12
-	; cur = *list
-	; next = (*list)->next
 	push  r12
 	push  r13
-	lea rdi, [rsp + 8]
-	lea rsi, [rsp]
+	lea rdi, [rsp + 8]; &cur
+	lea rsi, [rsp]; &next
 	call _advance
 	pop  r13
 	pop  r12
 	jmp .inner_loop_cond
 .outer_loop_iter: ; @audit-ok
-	; deref rdi at [rsp]
 	mov rdi, [rsp]; **list @audit-ok
 	push  r12
 	push  r13
-	; cur = *list
-	; next = (*list)->next
+	; load adresses
 	lea rsi, [rsp + 8]
 	lea rdx, [rsp]
-	call _reset_to_head
+	call _reset_to_head; lst, &cur, &next
 	pop r13
 	pop r12
-	; Load the possibly modified values back into registers
 	jmp .outer_loop_cond
