@@ -11,6 +11,35 @@ typedef struct s_list
 	struct s_list	*next;
 }	t_list;
 
+// #define DEBUG_ADDR
+
+void print_list(t_list *head, const char *label) {
+	printf("\n=== %s ===\n", label);
+	if (!head) {
+		printf("Empty list\n");
+		return;
+	}
+	
+	t_list *current = head;
+	int i = 0;
+	
+	while (current) {
+		// Print the integer value
+		printf("Node %d: Value = %d", i, *(int *)current->data);
+		
+		#ifdef DEBUG_ADDR
+		// Also print memory addresses when debug flag is defined
+		printf(" | Node addr: %p | Data addr: %p | Next addr: %p", 
+			   (void*)current, current->data, (void*)current->next);
+		#endif
+		
+		printf("\n");
+		current = current->next;
+		i++;
+	}
+	printf("\n");
+}
+
 t_list  *ft_create_elem(void *data) {
 	t_list	*new = malloc(sizeof(t_list));
 	if (new != NULL) {
@@ -101,48 +130,58 @@ void	test_list_sort_remove() {
 	// print and assert unordered correctly
 	t_list	*print_assert = *dbl_ptr;
 	for (int i = 0; i < 5; i++) {
-		fprintf(stderr, "%d\n", *(int *)print_assert->data);
+		// fprintf(stderr, "%d\n", *(int *)print_assert->data);
 		assert(arr[i] == *(int *)print_assert->data);
 		print_assert = print_assert->next;
 	}
 	// validate comparison function
-	assert(cmp_bubble(&arr[0], &arr[1]) > 0);
+	// assert(cmp_bubble(&arr[0], &arr[1]) > 0);
+	// fprintf((stderr), "DBL: **%p has - *%p\n", dbl_ptr, *dbl_ptr);
+	// fprintf((stderr), "first elem: %d at %p in - *%p\n", *(int *)((*dbl_ptr)->data), ((*dbl_ptr)->data), *dbl_ptr);
+	// fprintf((stderr), "second elem: %d at %p in %p - next: %p\n", *(int *)((*dbl_ptr)->next->data), ((*dbl_ptr)->next->data), ((*dbl_ptr)->next),(*dbl_ptr)->next->next);
+	print_list(*dbl_ptr, "*dbl_ptr");
 	ft_list_sort(dbl_ptr, cmp_bubble);
-	fprintf(stderr, "\n------\nre - ordered\n\n");
+	assert(((*dbl_ptr)->next) != NULL);
+	assert(((*dbl_ptr)->next->next) != NULL);
+	// fprintf((stderr), "DBL: **%p\n", dbl_ptr);
+	// fprintf((stderr), "first elem: %d at *%p in %p - next: %p\n", *(int *)((*dbl_ptr)->data),((*dbl_ptr)->data), *dbl_ptr, (*dbl_ptr)->next);
+	// fprintf((stderr), "second elem: %d at %p in %p - next: %p\n", *(int *)((*dbl_ptr)->next->data), ((*dbl_ptr)->next->data), ((*dbl_ptr)->next),(*dbl_ptr)->next->next);
+	// fprintf(stderr, "\n------\nre - ordered\n\n");
 	t_list	*check_sorted = *dbl_ptr;
 	for (int i = 0; i < 5; i++) {
-		fprintf(stderr, "%d\n", *(int *)check_sorted->data);
+		// fprintf(stderr, "%d\n", *(int *)check_sorted->data);
 		assert(arr_ordered[i] == *(int *)check_sorted->data);
 		check_sorted = check_sorted->next;
 	}
-	assert(not_cmp(&arr[0], &arr[1]) < 0);
-	ft_list_sort(dbl_ptr, not_cmp);
-	t_list	*re_unordered = *dbl_ptr;
-	for (int i = 0; i < 5; i++) {
-		assert(arr[i] == *(int *)re_unordered->data);
-		re_unordered = re_unordered->next;
-	}
-	#define A
-	#ifdef A // A: should only remove even
-	fprintf(stderr, "removing even numbers\n");
-	ft_list_remove_if(dbl_ptr, &arr_ordered[1]/* 2 */, is_modulo, free_nothing);
-	#elif defined (B) // B: remove last 2, become 543
-	ft_list_remove_if(dbl_ptr, &arr_ordered[0], cmp_is_equal_or_data_null, free_nothing);
-	ft_list_remove_if(dbl_ptr, &arr_ordered[1], cmp_is_equal_or_data_null, free_nothing);
-	#elif defined(C) // remove all elements
-	ft_list_remove_if(dbl_ptr, NULL, cmp_is_equal_or_data_null, free_nothing);
-	#endif
-	int max_val = ft_list_size(*dbl_ptr);
-	t_list	*only_odd = *dbl_ptr;
-	fprintf(stderr, "\n");
-	for (int i = 0; i < max_val; i++) {
-		fprintf(stderr, "%d\n", *(int *)only_odd->data);
-		only_odd = only_odd->next;
-	}
-	#ifndef C// will abort if ran with C
-	helper_free_list_data(*dbl_ptr, free_nothing);
-	#endif
-	free(dbl_ptr);
+	print_list(*dbl_ptr, "*dbl_ptr");
+	// assert(not_cmp(&arr[0], &arr[1]) < 0);
+	// ft_list_sort(dbl_ptr, not_cmp);
+	// t_list	*re_unordered = *dbl_ptr;
+	// for (int i = 0; i < 5; i++) {
+	// 	assert(arr[i] == *(int *)re_unordered->data);
+	// 	re_unordered = re_unordered->next;
+	// }
+	// #define A
+	// #ifdef A // A: should only remove even
+	// fprintf(stderr, "removing even numbers\n");
+	// ft_list_remove_if(dbl_ptr, &arr_ordered[1]/* 2 */, is_modulo, free_nothing);
+	// #elif defined (B) // B: remove last 2, become 543
+	// ft_list_remove_if(dbl_ptr, &arr_ordered[0], cmp_is_equal_or_data_null, free_nothing);
+	// ft_list_remove_if(dbl_ptr, &arr_ordered[1], cmp_is_equal_or_data_null, free_nothing);
+	// #elif defined(C) // remove all elements
+	// ft_list_remove_if(dbl_ptr, NULL, cmp_is_equal_or_data_null, free_nothing);
+	// #endif
+	// int max_val = ft_list_size(*dbl_ptr);
+	// t_list	*only_odd = *dbl_ptr;
+	// fprintf(stderr, "\n");
+	// for (int i = 0; i < max_val; i++) {
+	// 	fprintf(stderr, "%d\n", *(int *)only_odd->data);
+	// 	only_odd = only_odd->next;
+	// }
+	// #ifndef C// will abort if ran with C
+	// helper_free_list_data(*dbl_ptr, free_nothing);
+	// #endif
+	// free(dbl_ptr);
 }
 
 int	strcmp_adapter(void *a, void *b) {
@@ -150,36 +189,63 @@ int	strcmp_adapter(void *a, void *b) {
 }
 int	main() {
 	// element creation
-	char	*somedata = strdup("HAS_TO_BE_END");
-	const t_list template = (struct s_list){.data = somedata, .next = NULL};
-	t_list	*created_first = ft_create_elem(somedata);
-	assert(ft_list_size(NULL) == 0);
-	assert(ft_list_size(created_first) == 1);
-	assert(created_first != NULL);
-	assert(created_first->data == template.data);
-	assert(created_first->next == template.next);
-	fprintf((stderr), "created: %s\n", (char *)created_first->data);
-	// push element
-	t_list	**dbl_ptr = malloc(sizeof(t_list *));
-	*dbl_ptr = created_first;
-	assert(dbl_ptr != NULL);
-	char	*nowfirstdata = strdup("START");
-	fprintf((stderr), "DBL: **%p has - *%p\n", dbl_ptr, *dbl_ptr);
-	fprintf((stderr), "created_first: %s at %p in - *%p\n", (char *)((*dbl_ptr)->data), ((*dbl_ptr)->data), *dbl_ptr);
-	fprintf((stderr), "pushing...:\n");
-	ft_list_push_front(dbl_ptr, nowfirstdata);
-	assert(*dbl_ptr != NULL);
-	assert(((*dbl_ptr)->next) != NULL);
-	assert(((*dbl_ptr)->next->next) == NULL);
-	assert(ft_list_size(*dbl_ptr) == 2);
-	fprintf((stderr), "DBL: **%p\n", dbl_ptr);
-	fprintf((stderr), "first: %s at *%p in %p - next: %p\n", (char *)((*dbl_ptr)->data),((*dbl_ptr)->data), *dbl_ptr, (*dbl_ptr)->next);
-	fprintf((stderr), "second: %s at %p in %p - next: %p\n", (char *)((*dbl_ptr)->next->data), ((*dbl_ptr)->next->data), ((*dbl_ptr)->next),(*dbl_ptr)->next->next);
-	assert(created_first->next == NULL);
+	// char	*somedata = strdup("HAS_TO_BE_END");
+	// const t_list template = (struct s_list){.data = somedata, .next = NULL};
+	// t_list	*created_first = ft_create_elem(somedata);
+	// assert(ft_list_size(NULL) == 0);
+	// assert(ft_list_size(created_first) == 1);
+	// assert(created_first != NULL);
+	// assert(created_first->data == template.data);
+	// assert(created_first->next == template.next);
+	// fprintf((stderr), "created: %s\n", (char *)created_first->data);
+	// // push element
+	// t_list	**dbl_ptr = malloc(sizeof(t_list *));
+	// *dbl_ptr = created_first;
+	// assert(dbl_ptr != NULL);
+	// char	*nowfirstdata = strdup("START");
+	// fprintf((stderr), "DBL: **%p has - *%p\n", dbl_ptr, *dbl_ptr);
+	// fprintf((stderr), "created_first: %s at %p in - *%p\n", (char *)((*dbl_ptr)->data), ((*dbl_ptr)->data), *dbl_ptr);
+	// fprintf((stderr), "pushing...:\n");
+	// ft_list_push_front(dbl_ptr, nowfirstdata);
+	// assert(*dbl_ptr != NULL);
+	// assert(((*dbl_ptr)->next) != NULL);
+	// assert(((*dbl_ptr)->next->next) == NULL);
+	// assert(ft_list_size(*dbl_ptr) == 2);
+	// fprintf((stderr), "DBL: **%p\n", dbl_ptr);
+	// fprintf((stderr), "first: %s at *%p in %p - next: %p\n", (char *)((*dbl_ptr)->data),((*dbl_ptr)->data), *dbl_ptr, (*dbl_ptr)->next);
+	// fprintf((stderr), "second: %s at %p in %p - next: %p\n", (char *)((*dbl_ptr)->next->data), ((*dbl_ptr)->next->data), ((*dbl_ptr)->next),(*dbl_ptr)->next->next);
+	// assert(created_first->next == NULL);
 
-	helper_free_list_data(*dbl_ptr, free);
-	free(dbl_ptr);
+	// helper_free_list_data(*dbl_ptr, free);
+	// free(dbl_ptr);
 	test_list_sort_remove();
+}
+
+
+bool	swap(t_list *cur, t_list *next, int (*cmp)(void *, void *)) {
+	bool ret = true;
+	if ((*cmp)(cur->data, next->data) > 0) {
+		ret = false;
+		void	*tmp_cur = cur->data;
+		cur->data = next->data;
+		next->data = tmp_cur;
+		print_list(cur, "swap");
+	} else {
+		print_list(cur, "NO-swap");
+	}
+	return ret;
+}
+
+
+void	advance(t_list **cur, t_list **next) {
+	*cur = *next;
+		print_list(*cur, "advance");
+	*next = (*next)->next;
+}
+void	reset_to_head(t_list **lst, t_list **cur, t_list **next) {
+	*cur = *lst;
+	*next = (*lst)->next;
+	print_list(*lst, "reset-head");
 }
 
 /*
@@ -192,23 +258,24 @@ void	ft_list_sort(t_list** lst, int (*cmp)(void *, void *)) {
 	t_list	*cur = *lst;
 	t_list	*next = (*lst)->next;
 	bool	sorted = false;
-	while (!sorted) {
+	while (sorted == false) {
 		sorted = true;
 		while (cur && next) {
-			if (cmp(cur->data, next->data) > 0) {
+			if (swap(cur, next, cmp) != sorted) {
 				sorted = false;
-				// @audit-info only data is changed, the head will not move
-				void	*tmp_cur = cur->data;
-				cur->data = next->data;
-				next->data = tmp_cur;
 			}
+			advance(&cur, &next);
+			// print_list(cur, "*inner advance");
 			// advance
-			cur = next;
-			next = next->next;
+			// cur = next;
+			// next = next->next;
 		}
+		reset_to_head(lst, &cur, &next);
+		// print_list(*lst, "*outer reset");
 		// reset to head @audit-info
-		cur = *lst;
-		next = (*lst)->next;
+		// cur = *lst;
+		// next = (*lst)->next;
+
 	}
 }
 

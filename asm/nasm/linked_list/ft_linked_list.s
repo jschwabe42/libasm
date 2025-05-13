@@ -8,6 +8,7 @@ section .data
 	NEXT_OFFSET equ 8
 
 section .text
+; extern _print_dbg_list
 global _ft_create_elem
 global _ft_list_push_front
 global _ft_list_size
@@ -30,7 +31,7 @@ _ft_create_elem:
 	ret
 .error_malloc:
 	call ___error
-	mov qword [rax], 12 ; ENOMEM
+	mov qword [rax], 12; ENOMEM
 	xor rax, rax
 	leave
 	ret
@@ -39,10 +40,10 @@ _ft_create_elem:
 ; rsi: *data
 _ft_list_push_front:
 	enter 0, 0
-	push qword rdi ; [rsp]
+	push qword rdi; [rsp]
 .elem_node:
 	mov rdi, rsi
-	call _ft_create_elem ; *new
+	call _ft_create_elem; *new
 	test rax, rax
 	; rax contains ptr to new
 	; [rax] data
@@ -51,7 +52,7 @@ _ft_list_push_front:
 .update_ptrs:
 	mov rcx, qword [rsp]; store **list at rcx
 	push qword [rcx]; push *list == cur (save head)
-	mov [rcx], rax ; *list = new (discard [rcx])
+	mov [rcx], rax; *list = new (discard [rcx])
 	pop qword [rax + NEXT_OFFSET]; new->next = cur
 .return:
 	leave
@@ -73,61 +74,107 @@ _ft_list_size:
 .return_len:
 	ret
 
+; *cur, *next, cmp
+lswap:
+	enter 0, 0
+	push rdi; cur
+	push rsi; next
+
+	mov rdi, [rdi]; cur->data
+	mov rsi, [rsi]; next->data
+
+	call rdx; cmp
+	test al, al
+	jg .swap_data; > 0
+	mov rax, 1
+	jmp .return
+.swap_data:
+	pop rsi; cur
+	pop rdi; next
+	xor rax, rax
+
+	mov r8, qword [rdi]; cur->data == tmp
+	mov r9, qword [rsi]; next->data
+	mov [rdi], r9; cur->data = next->data
+	mov [rsi], r8; next->data = tmp
+.return:
+	leave
+	ret
+
+; **cur, **next
+advance:
+	; effectively `mov [rdi], [rsi]`
+	mov r9, [rsi]; *next
+	mov [rdi], r9; *cur = *next
+	; effectively `mov [rsi], [[rsi] + NEXT_OFFSET]`
+	mov r10, [r9 + NEXT_OFFSET]; (*next)->next
+	; mov [r9], r10; wrong: (*next) = (*next)->next
+	mov [rsi], r10; *next = (*next)->next
+	ret
+
+; **list, **cur, **next
+reset_to_head:
+	; setup cur = *list
+	mov r9, [rdi]
+	mov [rsi], r9
+	; setup next to (*list)->next
+	mov r10, [r9 + NEXT_OFFSET]
+	mov [rdx], r10
+	ret
+
 ; rdi **list
 ; rsi (*cmp)
 _ft_list_sort:
 	enter 0, 0
 	; preserve registers: callee-save
-	push qword rbx; [rsp + 32]
-	mov rbx, rsi; put cmp fnptr in callee-save rbx
+	push qword r14
 	push qword r12; [rsp + 24]
 	mov r12, qword [rdi]; cur = *list
 	push qword r13; [rsp + 16]
 	mov r13, qword [r12 + NEXT_OFFSET]; (*list)->next
-	push qword r14; [rsp + 8]
 	mov r14, 0; bool: sorted?
-	; preserve **list
-	push qword rdi; [rsp]
+	; preserve input
+	push  rsi; [rsp + 8] cmp
+	push  rdi; [rsp] **list
 .outer_loop_cond:
-	test r14b, r14b
-	jnz .return
-	mov r14b, 1; sorted = true
+	cmp r14, 0
+	je .set_sorted
+	leave
+	ret
+.set_sorted:
+	mov r14, 1
 .inner_loop_cond:
 	test r12, r12; cur
 	jz .outer_loop_iter
 	test r13, r13; next
 	jz .outer_loop_iter
 	; neither is null!
-.run_cmp:
-	; rdi: cur->data
-	mov rdi, qword [r12]; @audit
-	; rsi: next->data
-	mov rsi, qword [r13]; @audit
-	call rbx; (*cmp)
-	cmp rax, 1
-	jl .inner_loop_advance
-.swap:
-	; rax > 0 @audit ptrs!
-	mov r14b, 0; sorted = false
-	push qword [r12]; push cur->data
-	push qword [r13]; push next->data
-	pop qword r8; next->data
-	mov [r12], r8
-	pop qword r9; cur->data
-	mov [r13], r9
+	mov rdx, [rsp + 8]; cmp
+	mov rdi, r12; rdi: cur
+	mov rsi, r13; rsi: next
+	call lswap; cur, next, cmp
+	cmp rax, r14
+	jne .not_sorted
+	jmp .inner_loop_advance
+.not_sorted:
+	mov r14, 0
 .inner_loop_advance:
-	mov r12, r13; cur = next
-	mov rdi, [r13 + NEXT_OFFSET]
-	mov r13, rdi; next = next->next
+	push r12
+	push r13
+	lea rdi, [rsp + 8]; &cur
+	lea rsi, [rsp]; &next
+	call advance
+	pop r13
+	pop r12
 	jmp .inner_loop_cond
 .outer_loop_iter:
-	; deref rdi at [rsp]
-	mov rdi, [rsp]; *list @audit
-	; cur = *list
-	mov r12, rdi; @follow-up is the value correct?
-	; next = (*list)->next
-	mov r13, qword [r12 + NEXT_OFFSET]
+	mov rdi, [rsp]; **list
+	push r12
+	push r13
+	; load adresses
+	lea rsi, [rsp + 8]
+	lea rdx, [rsp]
+	call reset_to_head; lst, &cur, &next
+	pop r13
+	pop r12
 	jmp .outer_loop_cond
-.return:
-	leave
-	ret
