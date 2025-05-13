@@ -9,7 +9,6 @@ section .data
 
 section .text
 extern _print_dbg_list
-extern _swap
 extern _debug_outer_iter
 extern _debug_outer_iter_done
 extern _debug_inner_cmp
@@ -81,6 +80,33 @@ _ft_list_size:
 .return_len:
 	ret
 
+; *cur, *next, cmp
+lswap:
+	enter 0, 0
+	push rdi; cur
+	push rsi; next
+
+	mov rdi, [rdi]; cur->data
+	mov rsi, [rsi]; next->data
+
+	call rdx; cmp
+	test al, al
+	jg .swap_data; > 0
+	mov rax, 1
+	jmp .return
+.swap_data:
+	pop rsi; cur
+	pop rdi; next
+	xor rax, rax
+
+	mov r8, qword [rdi]  ; cur->data == tmp
+	mov r9, qword [rsi]  ; next->data
+	mov [rdi], r9  ; cur->data = next->data
+	mov [rsi], r8  ; next->data = tmp
+.return:
+	leave
+	ret
+
 ; **cur, **next
 advance:
 	; effectively `mov [rdi], [rsi]`
@@ -135,7 +161,7 @@ _ft_list_sort:
 	mov rdx, [rsp + 8]; cmp
 	mov rdi,  r12; rdi: cur
 	mov rsi,  r13; rsi: next
-	call _swap; cur, next, cmp
+	call lswap; cur, next, cmp
 	cmp rax, r14
 	jne .not_sorted
 	jmp .inner_loop_advance
