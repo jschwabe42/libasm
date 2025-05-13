@@ -13,6 +13,51 @@ typedef struct s_list
 	struct s_list	*next;
 }	t_list;
 
+// #define DEBUG_ADDR
+
+void print_list(t_list *head, const char *label) {
+	printf("\n=== %s ===\n", label);
+	if (!head) {
+		printf("Empty list\n");
+		return;
+	}
+	
+	t_list *current = head;
+	int i = 0;
+	
+	while (current) {
+		// Print the integer value
+		printf("Node %d: Value = %d\n", i, *(int *)current->data);
+		
+		#ifdef DEBUG_ADDR
+		// Also print memory addresses when debug flag is defined
+		printf("Node addr: %p | Data addr: %p | Next addr: %p", 
+			   (void*)current, current->data, (void*)current->next);
+		#endif
+		
+		printf("\n");
+		current = current->next;
+		i++;
+	}
+	printf("\n");
+}
+
+void print_dbg_list(t_list *cur) {
+	print_list(cur, "current");
+	/*
+	45321
+	43521
+	43251
+	43215
+	34215
+	32415
+	32145
+	23145
+	21345
+	12345
+	*/
+}
+
 extern t_list	*ft_create_elem(void *data);// @note testing only!
 extern void		*ft_list_push_front(t_list **begin_list, void *data);
 extern int		ft_list_size(t_list *begin_list);
@@ -93,43 +138,30 @@ void	debug_outer_iter_done() {
 }
 
 
-int	swap(t_list *cur, t_list *next, int (*cmp)(void *, void *)) {
-	int ret = 1;
-	fprintf(stderr, "\n- - - - - -\n");
-	// fprintf(stderr, "res = %d\n", res);
-	fprintf(stderr, "cur->data = %d\n", *(int *)cur->data);
-	fprintf(stderr, "next->data = %d\n", *(int *)next->data);
+bool	swap(t_list *cur, t_list *next, int (*cmp)(void *, void *)) {
+	bool ret = true;
 	if ((*cmp)(cur->data, next->data) > 0) {
-		ret = 0;
+		ret = false;
 		void	*tmp_cur = cur->data;
-		fprintf(stderr, "- - - - - -\n");
-		fprintf(stderr, "cur->data = %d\n", *(int *)cur->data);
-		fprintf(stderr, "next->data = %d\n", *(int *)next->data);
 		cur->data = next->data;
 		next->data = tmp_cur;
-		fprintf(stderr, "swapping...\n");
-		fprintf(stderr, "cur->data = %d\n", *(int *)cur->data);
-		fprintf(stderr, "next->data = %d\n\n", *(int *)next->data);
+		print_list(cur, "swap");
+	} else {
+		print_list(cur, "NO-swap");
 	}
 	return ret;
 }
 
 void	advance(t_list **cur, t_list **next) {
 	*cur = *next;
+	print_list(*cur, "advance");
 	*next = (*next)->next;
 }
 
 void	reset_to_head(t_list **lst, t_list **cur, t_list **next) {
-	fprintf(stderr, "- - - - - -\n");
-	fprintf(stderr, "(*lst)->data = %d\n", *(int *)(*lst)->data);
-	fprintf(stderr, "cur->data = %d\n", *(int *)(*cur)->data);
-	fprintf(stderr, "next->data = %d\n", *(int *)(*next)->data);
 	*cur = *lst;
 	*next = (*lst)->next;
-	fprintf(stderr, "resetting to head...\n");
-	fprintf(stderr, "(*lst)->data = %d\n", *(int *)(*lst)->data);
-	fprintf(stderr, "cur->data = %d\n", *(int *)(*cur)->data);
-	fprintf(stderr, "next->data = %d\n", *(int *)(*next)->data);
+	print_list(*lst, "reset-head");
 }
 
 
