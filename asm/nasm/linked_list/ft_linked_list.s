@@ -12,9 +12,6 @@ extern _print_dbg_list
 extern _swap
 extern _debug_outer_iter
 extern _debug_outer_iter_done
-extern _reset_to_head
-extern _advance
-extern _cmp_bubble
 extern _debug_inner_cmp
 extern _debug_inner_cond
 extern _debug_outer_cond
@@ -84,6 +81,27 @@ _ft_list_size:
 .return_len:
 	ret
 
+; **cur, **next
+advance:
+	; effectively `mov [rdi], [rsi]`
+	mov r9, [rsi]; *next
+	mov [rdi], r9; *cur = *next
+	; effectively `mov [rsi], [[rsi] + NEXT_OFFSET]`
+	mov r10, [r9 + NEXT_OFFSET]; (*next)->next
+	; mov [r9], r10; wrong: (*next) = (*next)->next
+	mov [rsi], r10; *next = (*next)->next
+	ret
+
+; **list, **cur, **next
+reset_to_head:
+	; setup cur = *list
+	mov r9, [rdi]
+	mov [rsi], r9
+	; setup next to (*list)->next
+	mov r10, [r9 + NEXT_OFFSET]
+	mov [rdx], r10
+	ret
+
 ; rdi **list
 ; rsi (*cmp)
 _ft_list_sort:
@@ -128,7 +146,7 @@ _ft_list_sort:
 	push  r13
 	lea rdi, [rsp + 8]; &cur
 	lea rsi, [rsp]; &next
-	call _advance
+	call advance
 	pop  r13
 	pop  r12
 	jmp .inner_loop_cond
@@ -139,7 +157,7 @@ _ft_list_sort:
 	; load adresses
 	lea rsi, [rsp + 8]
 	lea rdx, [rsp]
-	call _reset_to_head; lst, &cur, &next
+	call reset_to_head; lst, &cur, &next
 	pop r13
 	pop r12
 	jmp .outer_loop_cond
