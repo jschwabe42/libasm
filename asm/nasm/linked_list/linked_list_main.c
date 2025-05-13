@@ -24,6 +24,11 @@ extern int		ft_list_sort(t_list** lst, int (*cmp)(void *, void *));
 int	cmp_bubble(void *ptr_a, void *ptr_b) {
 	const int	a = *(int *)ptr_a;
 	const int	b = *(int *)ptr_b;
+	if (a > b) {
+		fprintf(stderr, "a > b: %d\n", a - b);
+	} else {
+		fprintf(stderr, "a < b: %d\n", a - b);
+	}
 	return a - b;
 }
 int	not_cmp(void *ptr_a, void *ptr_b) {
@@ -32,7 +37,6 @@ int	not_cmp(void *ptr_a, void *ptr_b) {
 int	strcmp_adapter(void *a, void *b) {
 	return strcmp((const char *)a, (const char *)b);
 }
-// boolean
 int	cmp_is_equal_or_data_null(void *data, void *cmp) {
 	if (((data && cmp) && *(int *)data == *(int *)cmp) || !cmp) {
 		return 0;
@@ -69,6 +73,67 @@ int		c_list_size(t_list *begin_list) {
 	return len;
 }
 
+void	debug_inner_cmp() {
+	fprintf(stderr, "cmp: inner start!\n");
+}
+void	debug_inner_cond() {
+	fprintf(stderr, "cond: inner!\n");
+}
+void	debug_outer_cond() {
+	fprintf(stderr, "cond: outer!\n");
+}
+void	debug_outer_cond_complete() {
+	fprintf(stderr, "cond: outer complete!\n");
+}
+void	debug_outer_iter() {
+	fprintf(stderr, "iter outer!\n");
+}
+void	debug_outer_iter_done() {
+	fprintf(stderr, "next outer!\n");
+}
+
+
+int	swap(t_list *cur, t_list *next, int (*cmp)(void *, void *)) {
+	int ret = 1;
+	fprintf(stderr, "\n- - - - - -\n");
+	// fprintf(stderr, "res = %d\n", res);
+	fprintf(stderr, "cur->data = %d\n", *(int *)cur->data);
+	fprintf(stderr, "next->data = %d\n", *(int *)next->data);
+	if ((*cmp)(cur->data, next->data) > 0) {
+		ret = 0;
+		void	*tmp_cur = cur->data;
+		fprintf(stderr, "- - - - - -\n");
+		fprintf(stderr, "cur->data = %d\n", *(int *)cur->data);
+		fprintf(stderr, "next->data = %d\n", *(int *)next->data);
+		cur->data = next->data;
+		next->data = tmp_cur;
+		fprintf(stderr, "swapping...\n");
+		fprintf(stderr, "cur->data = %d\n", *(int *)cur->data);
+		fprintf(stderr, "next->data = %d\n\n", *(int *)next->data);
+	}
+	return ret;
+}
+
+void	advance(t_list **cur, t_list **next) {
+	*cur = *next;
+	*next = (*next)->next;
+}
+
+void	reset_to_head(t_list **lst, t_list **cur, t_list **next) {
+	fprintf(stderr, "- - - - - -\n");
+	fprintf(stderr, "(*lst)->data = %d\n", *(int *)(*lst)->data);
+	fprintf(stderr, "cur->data = %d\n", *(int *)(*cur)->data);
+	fprintf(stderr, "next->data = %d\n", *(int *)(*next)->data);
+	*cur = *lst;
+	*next = (*lst)->next;
+	fprintf(stderr, "resetting to head...\n");
+	fprintf(stderr, "(*lst)->data = %d\n", *(int *)(*lst)->data);
+	fprintf(stderr, "cur->data = %d\n", *(int *)(*cur)->data);
+	fprintf(stderr, "next->data = %d\n", *(int *)(*next)->data);
+}
+
+
+
 void	test_list_sort() {
 	int	arr[5] = {5, 4, 3, 2, 1};
 	int	arr_ordered[5] = {1, 2, 3, 4 ,5};
@@ -84,20 +149,32 @@ void	test_list_sort() {
 	t_list	*print_assert = *dbl_ptr;
 	for (int i = 0; i < 5; i++) {
 		fprintf(stderr, "%d\n", *(int *)print_assert->data);
-		assert(arr[i] == *(int *)print_assert->data);
+		// assert(arr[i] == *(int *)print_assert->data);
 		print_assert = print_assert->next;
 	}
 	// validate comparison function
 	assert(cmp_bubble(&arr[0], &arr[1]) > 0);
+	fprintf((stderr), "DBL: **%p has - *%p\n", dbl_ptr, *dbl_ptr);
+	fprintf((stderr), "first elem: %d at %p in - *%p\n", *(int *)((*dbl_ptr)->data), ((*dbl_ptr)->data), *dbl_ptr);
+	fprintf((stderr), "second elem: %d at %p in %p - next: %p\n", *(int *)((*dbl_ptr)->next->data), ((*dbl_ptr)->next->data), ((*dbl_ptr)->next),(*dbl_ptr)->next->next);
 	fprintf(stderr, "result of cmp: %d\n", ft_list_sort(dbl_ptr, cmp_bubble));
+	assert(((*dbl_ptr)->next) != NULL);
+	assert(((*dbl_ptr)->next->next) != NULL);
+	fprintf((stderr), "DBL: **%p\n", dbl_ptr);
+	fprintf((stderr), "first elem: %d at *%p in %p - next: %p\n", *(int *)((*dbl_ptr)->data),((*dbl_ptr)->data), *dbl_ptr, (*dbl_ptr)->next);
+	fprintf((stderr), "second elem: %d at %p in %p - next: %p\n", *(int *)((*dbl_ptr)->next->data), ((*dbl_ptr)->next->data), ((*dbl_ptr)->next),(*dbl_ptr)->next->next);
 	fprintf(stderr, "\n------\nre - ordered\n\n");
 	t_list	*check_sorted = *dbl_ptr;
 	for (int i = 0; i < 5; i++) {
 		fprintf(stderr, "%d\n", *(int *)check_sorted->data);
-		// assert(arr_ordered[i] == *(int *)check_sorted->data);
 		check_sorted = check_sorted->next;
 	}
-	assert(not_cmp(&arr[0], &arr[1]) < 0);
+	check_sorted = *dbl_ptr;
+	for (int i = 0; i < 5; i++) {
+		assert(arr_ordered[i] == *(int *)check_sorted->data);
+		check_sorted = check_sorted->next;
+	}
+	// assert(not_cmp(&arr[0], &arr[1]) < 0);
 	// ft_list_sort(dbl_ptr, not_cmp);
 	// t_list	*re_unordered = *dbl_ptr;
 	// for (int i = 0; i < 5; i++) {

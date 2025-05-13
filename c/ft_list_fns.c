@@ -107,7 +107,15 @@ void	test_list_sort_remove() {
 	}
 	// validate comparison function
 	assert(cmp_bubble(&arr[0], &arr[1]) > 0);
+	fprintf((stderr), "DBL: **%p has - *%p\n", dbl_ptr, *dbl_ptr);
+	fprintf((stderr), "first elem: %d at %p in - *%p\n", *(int *)((*dbl_ptr)->data), ((*dbl_ptr)->data), *dbl_ptr);
+	fprintf((stderr), "second elem: %d at %p in %p - next: %p\n", *(int *)((*dbl_ptr)->next->data), ((*dbl_ptr)->next->data), ((*dbl_ptr)->next),(*dbl_ptr)->next->next);
 	ft_list_sort(dbl_ptr, cmp_bubble);
+	assert(((*dbl_ptr)->next) != NULL);
+	assert(((*dbl_ptr)->next->next) != NULL);
+	fprintf((stderr), "DBL: **%p\n", dbl_ptr);
+	fprintf((stderr), "first elem: %d at *%p in %p - next: %p\n", *(int *)((*dbl_ptr)->data),((*dbl_ptr)->data), *dbl_ptr, (*dbl_ptr)->next);
+	fprintf((stderr), "second elem: %d at %p in %p - next: %p\n", *(int *)((*dbl_ptr)->next->data), ((*dbl_ptr)->next->data), ((*dbl_ptr)->next),(*dbl_ptr)->next->next);
 	fprintf(stderr, "\n------\nre - ordered\n\n");
 	t_list	*check_sorted = *dbl_ptr;
 	for (int i = 0; i < 5; i++) {
@@ -182,6 +190,23 @@ int	main() {
 	test_list_sort_remove();
 }
 
+
+void	swap(t_list *cur, t_list *next, int res) {
+	assert(res > 0);
+	void	*tmp_cur = cur->data;
+	cur->data = next->data;
+	next->data = tmp_cur;
+}
+
+void	advance(t_list **cur, t_list **next) {
+	*cur = *next;
+	*next = (*next)->next;
+}
+void	reset_to_head(t_list **lst, t_list **cur, t_list **next) {
+	*cur = *lst;
+	*next = (*lst)->next;
+}
+
 /*
 sorts the list elements in ascending order
 by comparing two elements and their data using a comparison function
@@ -192,23 +217,24 @@ void	ft_list_sort(t_list** lst, int (*cmp)(void *, void *)) {
 	t_list	*cur = *lst;
 	t_list	*next = (*lst)->next;
 	bool	sorted = false;
-	while (!sorted) {
+	while (sorted == false) {
 		sorted = true;
 		while (cur && next) {
 			if (cmp(cur->data, next->data) > 0) {
 				sorted = false;
 				// @audit-info only data is changed, the head will not move
-				void	*tmp_cur = cur->data;
-				cur->data = next->data;
-				next->data = tmp_cur;
+				swap(cur, next, cmp(cur->data, next->data));
 			}
+			advance(&cur, &next);
 			// advance
-			cur = next;
-			next = next->next;
+			// cur = next;
+			// next = next->next;
 		}
+		reset_to_head(lst, &cur, &next);
 		// reset to head @audit-info
-		cur = *lst;
-		next = (*lst)->next;
+		// cur = *lst;
+		// next = (*lst)->next;
+
 	}
 }
 

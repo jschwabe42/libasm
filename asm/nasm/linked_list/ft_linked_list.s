@@ -8,6 +8,16 @@ section .data
 	NEXT_OFFSET equ 8
 
 section .text
+extern _swap
+extern _debug_outer_iter
+extern _debug_outer_iter_done
+extern _reset_to_head
+extern _advance
+extern _cmp_bubble
+extern _debug_inner_cmp
+extern _debug_inner_cond
+extern _debug_outer_cond
+extern _debug_outer_cond_complete
 global _ft_create_elem
 global _ft_list_push_front
 global _ft_list_size
@@ -78,56 +88,59 @@ _ft_list_size:
 _ft_list_sort:
 	enter 0, 0
 	; preserve registers: callee-save
-	push qword rbx; [rsp + 32]
-	mov rbx, rsi; put cmp fnptr in callee-save rbx
-	push qword r12; [rsp + 24]
+	push  r12; [rsp + 24]
 	mov r12, qword [rdi]; cur = *list
-	push qword r13; [rsp + 16]
+	push  r13; [rsp + 16]
 	mov r13, qword [r12 + NEXT_OFFSET]; (*list)->next
-	push qword r14; [rsp + 8]
-	mov r14, 0; bool: sorted?
-	; preserve **list
-	push qword rdi; [rsp]
+	mov r9, 0; bool: sorted?
+	push  rsi; [rsp + 8] cmp
+	push  rdi; [rsp] **list
 .outer_loop_cond:
-	test r14b, r14b
-	jnz .return
-	mov r14b, 1; sorted = true
+	call _debug_outer_cond
+	cmp r9, 0
+	je .var_init
+	leave
+	ret
+.var_init:
+	call _debug_outer_cond_complete
+	mov r9, 1
 .inner_loop_cond:
 	test r12, r12; cur
 	jz .outer_loop_iter
 	test r13, r13; next
 	jz .outer_loop_iter
 	; neither is null!
-.run_cmp:
+	mov rdx, [rsp + 8]
+	push  r12
+	push  r13
 	; rdi: cur->data
-	mov rdi, qword [r12]; @audit
+	mov rdi,  [rsp + 8]; @audit
 	; rsi: next->data
-	mov rsi, qword [r13]; @audit
-	call rbx; (*cmp)
-	cmp rax, 1
-	jl .inner_loop_advance
-.swap:
-	; rax > 0 @audit ptrs!
-	mov r14b, 0; sorted = false
-	push qword [r12]; push cur->data
-	push qword [r13]; push next->data
-	pop qword r8; next->data
-	mov [r12], r8
-	pop qword r9; cur->data
-	mov [r13], r9
+	mov rsi,  [rsp]; @audit
+	call _swap; this asserts rdx > 0 @audit violated
+	cmp rax, r9
+	je .inner_loop_advance
+	mov r9, 0
 .inner_loop_advance:
-	mov r12, r13; cur = next
-	mov rdi, [r13 + NEXT_OFFSET]
-	mov r13, rdi; next = next->next
-	jmp .inner_loop_cond
-.outer_loop_iter:
-	; deref rdi at [rsp]
-	mov rdi, [rsp]; *list @audit
 	; cur = *list
-	mov r12, rdi; @follow-up is the value correct?
 	; next = (*list)->next
-	mov r13, qword [r12 + NEXT_OFFSET]
+	lea rsi, [rsp + 8]
+	lea rdx, [rsp]
+	call _advance
+	pop  r13
+	pop  r12
+	jmp .inner_loop_cond
+.outer_loop_iter: ; @audit-ok
+	call _debug_outer_iter
+	; deref rdi at [rsp]
+	mov rdi, [rsp + 24]; **list @audit-ok
+	; push  r12
+	; push  r13
+	; cur = *list
+	; next = (*list)->next
+	lea rsi, [rsp + 8]
+	lea rdx, [rsp]
+	call _reset_to_head
+	; Load the possibly modified values back into registers
+	; call _debug_outer_iter_done
 	jmp .outer_loop_cond
-.return:
-	leave
-	ret
