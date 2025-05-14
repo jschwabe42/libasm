@@ -149,15 +149,27 @@ _ft_list_sort:
 	test r13, r13; next
 	jz .outer_loop_iter
 	; neither is null!
-	mov rdx, [rsp + 8]; cmp
-	mov rdi, r12; rdi: cur
-	mov rsi, r13; rsi: next
-	call lswap; cur, next, cmp
-	cmp al, r14b
-	jne .not_sorted
-	jmp .inner_loop_advance
-.not_sorted:
+.do_swap_inline_one: ; requires do_swap_inline_two
+	mov rdi, [r12]
+	mov rsi, [r13]
+	call [rsp + 8]
+	cmp al, 0
+	jle .inner_loop_advance
+; .do_swap:
+	; mov rdx, [rsp + 8]; cmp
+; 	mov rdi, r12; rdi: cur
+; 	mov rsi, r13; rsi: next
+; 	call lswap; cur, next, cmp
+; 	cmp al, r14b
+; 	jne .not_sorted
+; 	jmp .inner_loop_advance
+.not_sorted: ; swap data
 	mov r14b, 0
+.do_swap_inline_two: ;requires do_swap_inline_one
+	mov r8, qword [r12]; cur->data == tmp
+	mov r9, qword [r13]; next->data
+	mov [r12], r9; cur->data = next->data
+	mov [r13], r8; next->data = tmp
 .inner_loop_advance:
 	mov r9, r13; tmp1 next
 	mov r12, r9; *cur = tmp1 (next)
