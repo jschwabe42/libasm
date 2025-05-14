@@ -101,14 +101,13 @@ _ft_list_sort:
 	test r13, r13; next
 	jz .outer_loop_iter
 	; neither is null!
-.do_swap_inline_one: ; requires do_swap_inline_two
+.do_swap_inline:
 	mov rdi, [r12]
 	mov rsi, [r13]
 	call [rsp + 8]
-	cmp al, 0
-	jle .inner_loop_advance
-.do_swap_inline_two: ;requires do_swap_inline_one
-	mov r14b, 0; not sorted
+	cmp al, 1
+	jl .inner_loop_advance; no swap
+	xor r14b, r14b; not sorted
 	mov r8, qword [r12]; cur->data == tmp
 	mov r9, qword [r13]; next->data
 	mov [r12], r9; cur->data = next->data
