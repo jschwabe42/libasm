@@ -125,7 +125,6 @@ _ft_list_sort:
 	mov r13, [r12 + NEXT_OFFSET]; next = cur/(*list)->next
 	jmp .outer_loop_cond
 
-; ft_list_remove_if(t_list **begin_list, void *data_ref, int (*cmp)(void *, void *), void (*free_fct)(void *));
 ; rdi: list **
 ; rsi: data_ref *
 ; rdx: cmp
@@ -149,40 +148,29 @@ _ft_list_remove_if:
 	leave
 	ret
 .run_loop:
-	; setup input
 	mov rdi, [r12]
 	mov rsi, [rsp + 16]
-	; rdi, rsi: cur->data, data_ref
-	call [rsp + 8]
+	call [rsp + 8]; cmp (cur->data, data_ref)
 	test al, al
 	jnz .advance
 .remove:
 	mov rdi, [r12]
-	call [rsp]; free_fct
-	; preserve cur->next
-	mov r8, [r12 + NEXT_OFFSET]
-	push qword r8; next
-	; setup for free(cur)
-	mov rdi, r12
+	call [rsp]; free_fct on cur->data
+	push qword [r12 + NEXT_OFFSET]; preserve cur->next
+	mov rdi, r12; setup: free cur (node)
 	call _free
 	test r13, r13
 	jz .rmfirst_reset_begin
 .rm_nonfirst_update_prev:
-	; get prev->next
 	pop qword [r13 + NEXT_OFFSET]; into prev->next: next
 	mov r12, [r13 + NEXT_OFFSET]
 	jmp .loop_cond
 .rmfirst_reset_begin:
-	mov r9, qword [rsp + 32]; ***list/addr of **list
-	; *list = next
-	pop qword [r9]
-	; cur = *list
-	mov r12, [r9]
+	mov r9, qword [rsp + 32]; **list
+	pop qword [r9]; *list = next
+	mov r12, [r9]; cur = *list
 	jmp .loop_cond
 .advance:
-	; prev = cur
-	; cur = cur->next
-	mov r9, r12; tmp (cur)
-	mov r13, r9; prev = tmp
-	mov r12, [r9 + NEXT_OFFSET]; cur = tmp->next
+	mov r13, r12; prev = cur
+	mov r12, [r12 + NEXT_OFFSET]; cur = cur->next
 	jmp .loop_cond
