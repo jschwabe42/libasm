@@ -66,7 +66,7 @@ extern void		ft_list_sort(t_list** lst, int (*cmp)(void *, void *));
 #ifdef CMP_INLINE_SORT
 extern void		ft_list_sort_fn_calls(t_list** lst, int (*cmp)(void *, void *));
 #endif
-// extern void	ft_list_remove_if(t_list **begin_list, void *data_ref, int (*cmp)(void *, void *), void (*free_fct)(void *));
+extern void		ft_list_remove_if(t_list **begin_list, void *data_ref, int (*cmp)(void *, void *), void (*free_fct)(void *));
 
 // @audit-info testing utils
 // integer
@@ -206,6 +206,32 @@ void	test_list_sort() {
 		assert(arr[i] == *(int *)re_unordered->data);
 		re_unordered = re_unordered->next;
 	}
+	#define A
+	#ifdef A // A: should only remove even
+	fprintf(stderr, "removing even numbers\n");
+	ft_list_remove_if(dbl_ptr, &arr_ordered[1]/* 2 */, is_modulo, free_nothing);
+	assert(*(int *)(*dbl_ptr)->data == 5);
+	assert(*(int *)(*dbl_ptr)->next->data == 3);
+	assert(*(int *)(*dbl_ptr)->next->next->data == 1);
+	assert((*dbl_ptr)->next->next->next == NULL);
+	#elif defined (B) // B: remove last 2, become 543
+	ft_list_remove_if(dbl_ptr, &arr_ordered[0], cmp_is_equal_or_data_null, free_nothing);
+	ft_list_remove_if(dbl_ptr, &arr_ordered[1], cmp_is_equal_or_data_null, free_nothing);
+	#elif defined(C) // remove all elements
+	ft_list_remove_if(dbl_ptr, NULL, cmp_is_equal_or_data_null, free_nothing);
+	#endif
+	int max_val = ft_list_size(*dbl_ptr);
+	t_list	*only_odd = *dbl_ptr;
+	fprintf(stderr, "\n");
+	for (int i = 0; i < max_val; i++) {
+		fprintf(stderr, "%d\n", *(int *)only_odd->data);
+		only_odd = only_odd->next;
+	}
+	print_list(*dbl_ptr, "*dbl_ptr");
+	#ifndef C// will abort if ran with C
+	helper_free_list_data(*dbl_ptr, free_nothing);
+	#endif
+	free(dbl_ptr);
 }
 
 int	main() {

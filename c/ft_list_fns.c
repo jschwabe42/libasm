@@ -154,34 +154,34 @@ void	test_list_sort_remove() {
 		check_sorted = check_sorted->next;
 	}
 	print_list(*dbl_ptr, "*dbl_ptr");
-	// assert(not_cmp(&arr[0], &arr[1]) < 0);
-	// ft_list_sort(dbl_ptr, not_cmp);
-	// t_list	*re_unordered = *dbl_ptr;
-	// for (int i = 0; i < 5; i++) {
-	// 	assert(arr[i] == *(int *)re_unordered->data);
-	// 	re_unordered = re_unordered->next;
-	// }
-	// #define A
-	// #ifdef A // A: should only remove even
-	// fprintf(stderr, "removing even numbers\n");
-	// ft_list_remove_if(dbl_ptr, &arr_ordered[1]/* 2 */, is_modulo, free_nothing);
-	// #elif defined (B) // B: remove last 2, become 543
-	// ft_list_remove_if(dbl_ptr, &arr_ordered[0], cmp_is_equal_or_data_null, free_nothing);
-	// ft_list_remove_if(dbl_ptr, &arr_ordered[1], cmp_is_equal_or_data_null, free_nothing);
-	// #elif defined(C) // remove all elements
-	// ft_list_remove_if(dbl_ptr, NULL, cmp_is_equal_or_data_null, free_nothing);
-	// #endif
-	// int max_val = ft_list_size(*dbl_ptr);
-	// t_list	*only_odd = *dbl_ptr;
-	// fprintf(stderr, "\n");
-	// for (int i = 0; i < max_val; i++) {
-	// 	fprintf(stderr, "%d\n", *(int *)only_odd->data);
-	// 	only_odd = only_odd->next;
-	// }
-	// #ifndef C// will abort if ran with C
-	// helper_free_list_data(*dbl_ptr, free_nothing);
-	// #endif
-	// free(dbl_ptr);
+	assert(not_cmp(&arr[0], &arr[1]) < 0);
+	ft_list_sort(dbl_ptr, not_cmp);
+	t_list	*re_unordered = *dbl_ptr;
+	for (int i = 0; i < 5; i++) {
+		assert(arr[i] == *(int *)re_unordered->data);
+		re_unordered = re_unordered->next;
+	}
+	#define A
+	#ifdef A // A: should only remove even
+	fprintf(stderr, "removing even numbers\n");
+	ft_list_remove_if(dbl_ptr, &arr_ordered[1]/* 2 */, is_modulo, free_nothing);
+	#elif defined (B) // B: remove last 2, become 543
+	ft_list_remove_if(dbl_ptr, &arr_ordered[0], cmp_is_equal_or_data_null, free_nothing);
+	ft_list_remove_if(dbl_ptr, &arr_ordered[1], cmp_is_equal_or_data_null, free_nothing);
+	#elif defined(C) // remove all elements
+	ft_list_remove_if(dbl_ptr, NULL, cmp_is_equal_or_data_null, free_nothing);
+	#endif
+	int max_val = ft_list_size(*dbl_ptr);
+	t_list	*only_odd = *dbl_ptr;
+	fprintf(stderr, "\n");
+	for (int i = 0; i < max_val; i++) {
+		fprintf(stderr, "%d\n", *(int *)only_odd->data);
+		only_odd = only_odd->next;
+	}
+	#ifndef C// will abort if ran with C
+	helper_free_list_data(*dbl_ptr, free_nothing);
+	#endif
+	free(dbl_ptr);
 }
 
 int	strcmp_adapter(void *a, void *b) {

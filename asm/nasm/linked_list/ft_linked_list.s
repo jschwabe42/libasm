@@ -11,6 +11,7 @@ section .text
 ; extern _print_dbg_list
 global _ft_create_elem
 global _ft_list_push_front
+global _ft_list_remove_if
 global _ft_list_size
 global _ft_list_sort
 extern _puts
@@ -122,3 +123,13 @@ _ft_list_sort:
 	mov r12, [rdi]; cur = *list
 	mov r13, [r12 + NEXT_OFFSET]; next = cur/(*list)->next
 	jmp .outer_loop_cond
+
+; ft_list_remove_if(t_list **begin_list, void *data_ref, int (*cmp)(void *, void *), void (*free_fct)(void *));
+; rdi: list **
+; rsi: data_ref *
+; rdx: cmp
+; rcx: free (cur->data)
+_ft_list_remove_if:
+	enter 0, 0
+	leave
+	ret
