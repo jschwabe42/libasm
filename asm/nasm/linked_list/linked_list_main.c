@@ -62,7 +62,7 @@ extern void		*ft_list_push_front(t_list **begin_list, void *data);
 extern int		ft_list_size(t_list *begin_list);
 extern void		ft_list_sort(t_list** lst, int (*cmp)(void *, void *));
 
-#define CMP_INLINE_SORT
+// #define CMP_INLINE_SORT
 #ifdef CMP_INLINE_SORT
 extern void		ft_list_sort_fn_calls(t_list** lst, int (*cmp)(void *, void *));
 #endif
@@ -206,7 +206,7 @@ void	test_list_sort() {
 		assert(arr[i] == *(int *)re_unordered->data);
 		re_unordered = re_unordered->next;
 	}
-	#define A
+	#define C
 	#ifdef A // A: should only remove even
 	fprintf(stderr, "removing even numbers\n");
 	ft_list_remove_if(dbl_ptr, &arr_ordered[1]/* 2 */, is_modulo, free_nothing);
@@ -223,6 +223,7 @@ void	test_list_sort() {
 	assert((*dbl_ptr)->next->next->next == NULL);
 	#elif defined(C) // remove all elements
 	ft_list_remove_if(dbl_ptr, NULL, cmp_is_equal_or_data_null, free_nothing);
+	assert(dbl_ptr != NULL);
 	assert((*dbl_ptr) == NULL);
 	#endif
 	int max_val = ft_list_size(*dbl_ptr);

@@ -15,6 +15,7 @@ global _ft_list_remove_if
 global _ft_list_size
 global _ft_list_sort
 extern _puts
+extern _free
 
 ; input in rdi: data ptr
 ; return t_list *self
@@ -128,8 +129,63 @@ _ft_list_sort:
 ; rdi: list **
 ; rsi: data_ref *
 ; rdx: cmp
-; rcx: free (cur->data)
+; rcx: free_fct (cur->data)
 _ft_list_remove_if:
 	enter 0, 0
+	; preserve callee-save
+	push qword r12
+	push qword r13
+	; preserve input
+	push qword rdi; **list
+	push qword rsi; *data_ref
+	push qword rdx; cmp
+	push qword rcx; free_fct
+	; vars
+	mov r12, [rdi]; *list
+	mov r13, 0; *prev
+.loop_cond:
+	test r12, r12
+	jnz .run_loop
 	leave
 	ret
+.run_loop:
+	; setup input
+	mov rdi, [r12]
+	mov rsi, [rsp + 16]
+	; rdi, rsi: cur->data, data_ref
+	call [rsp + 8]
+	test al, al
+	jnz .advance
+.remove:
+	mov rdi, [r12]
+	call [rsp]; free_fct
+	; preserve cur->next
+	mov r8, [r12 + NEXT_OFFSET]
+	push qword r8; next
+	; setup for free(cur)
+	mov rdi, r12
+	call _free
+	test r13, r13
+	jz .rmfirst_reset_begin
+.rm_nonfirst_update_prev:
+	; get prev->next
+	pop qword [r13 + NEXT_OFFSET]; into prev->next: next
+	mov r12, [r13 + NEXT_OFFSET]
+	jmp .loop_next
+.rmfirst_reset_begin:
+	; @audit lea?
+	; *list = next
+	mov r9, [rsp + 24]; **list
+	pop r8; next
+	mov [r9], r8
+	; cur = *list
+	mov r12, [r9]
+	jmp .loop_next
+.advance:
+	; prev = cur
+	; cur = cur->next
+	mov r9, r12; tmp (cur)
+	mov r13, r9; prev = tmp
+	mov r12, [r9 + NEXT_OFFSET]; cur = tmp->next
+.loop_next:
+	jmp .loop_cond
