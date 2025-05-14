@@ -173,13 +173,11 @@ _ft_list_remove_if:
 	mov r12, [r13 + NEXT_OFFSET]
 	jmp .loop_cond
 .rmfirst_reset_begin:
-	lea r9, qword [rsp + 32]; ***list/addr of **list
-	pop qword r8; next
+	mov r9, qword [rsp + 32]; ***list/addr of **list
 	; *list = next
-	mov rdi, [r9]
-	mov [rdi], r8
+	pop qword [r9]
 	; cur = *list
-	mov r12, r8
+	mov r12, [r9]
 	jmp .loop_cond
 .advance:
 	; prev = cur
