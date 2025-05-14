@@ -151,12 +151,12 @@ _ft_list_remove_if:
 	mov rdi, [r12]
 	mov rsi, [rsp + 16]
 	call [rsp + 8]; cmp (cur->data, data_ref)
+	push qword [r12 + NEXT_OFFSET]; preserve cur->next
 	test al, al
 	jnz .advance
 .remove:
 	mov rdi, [r12]
-	call [rsp]; free_fct on cur->data
-	push qword [r12 + NEXT_OFFSET]; preserve cur->next
+	call [rsp + 8]; free_fct on cur->data
 	mov rdi, r12; setup: free cur (node)
 	call _free
 	test r13, r13
@@ -172,5 +172,5 @@ _ft_list_remove_if:
 	jmp .loop_cond
 .advance:
 	mov r13, r12; prev = cur
-	mov r12, [r12 + NEXT_OFFSET]; cur = cur->next
+	pop r12; cur = cur->next (pop from [r12 + NEXT_OFFSET])
 	jmp .loop_cond
