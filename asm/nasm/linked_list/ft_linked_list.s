@@ -31,7 +31,7 @@ extern SYM(malloc)
 
 ; input in rdi: data ptr
 ; return t_list *self
-ft_create_elem:
+SYM(ft_create_elem):
 	enter 0, 0
 	push rdi
 	mov rdi, ELEM_SIZE
@@ -52,7 +52,7 @@ ft_create_elem:
 
 ; rdi: **list
 ; rsi: *data
-ft_list_push_front:
+SYM(ft_list_push_front):
 	enter 0, 0
 	push qword rdi; [rsp]
 .elem_node:
@@ -90,7 +90,7 @@ ft_list_size:
 
 ; rdi **list
 ; rsi (*cmp)
-ft_list_sort:
+SYM(ft_list_sort):
 	enter 0, 0
 	; preserve registers: callee-save
 	push qword r14
@@ -141,7 +141,7 @@ ft_list_sort:
 ; rsi: data_ref *
 ; rdx: cmp
 ; rcx: free_fct (cur->data)
-ft_list_remove_if:
+SYM(ft_list_remove_if):
 	enter 0, 0
 	; preserve callee-save
 	push qword r12
