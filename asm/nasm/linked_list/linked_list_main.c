@@ -217,8 +217,13 @@ void	test_list_sort() {
 	#elif defined (B) // B: remove last 2, become 543
 	ft_list_remove_if(dbl_ptr, &arr_ordered[0], cmp_is_equal_or_data_null, free_nothing);
 	ft_list_remove_if(dbl_ptr, &arr_ordered[1], cmp_is_equal_or_data_null, free_nothing);
+	assert(*(int *)(*dbl_ptr)->data == 5);
+	assert(*(int *)(*dbl_ptr)->next->data == 4);
+	assert(*(int *)(*dbl_ptr)->next->next->data == 3);
+	assert((*dbl_ptr)->next->next->next == NULL);
 	#elif defined(C) // remove all elements
 	ft_list_remove_if(dbl_ptr, NULL, cmp_is_equal_or_data_null, free_nothing);
+	assert((*dbl_ptr) == NULL);
 	#endif
 	int max_val = ft_list_size(*dbl_ptr);
 	t_list	*only_odd = *dbl_ptr;
