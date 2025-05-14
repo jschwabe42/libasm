@@ -29,10 +29,12 @@ int main()
 	int fildes = open("./testout", O_WRONLY | O_CREAT, 0644);
 	assert(ft_write(fildes, write_buf, 153) != -1);
 	assert(close(fildes) != -1);
-	// assert(ft_write(1, write_buf, LONG_MAX + 1) == -1);
+	// assert(ft_write(1, write_buf, INT_MAX) == -1);
 	// assert(write(1, write_buf, LONG_MAX + 1) == -1);
-	fprintf(stderr, "Error: %s (errno: %d)\n", strerror(errno), errno);
-	printf("EINVAL = %d\n", EINVAL);
+	char	*strerr = strerror(errno);
+	fprintf(stderr, "Error: %s (errno: %d)\n", strerr, errno);
+	// free(strerr);
+	printf("real EINVAL = %d\n", EINVAL);
 	// fprintf(stderr, "System error message: %s\n", sys_errlist[errno]);
 	perror("");
 	return (0);

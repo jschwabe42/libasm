@@ -5,13 +5,13 @@ section .data
 	NEXT_OFFSET equ 8
 
 %ifidn __OUTPUT_FORMAT__, macho64
-	extern ___error         ; macOS error symbol
-	%define GET_MALLOC _malloc
+	extern ___error
 	%define GET_ERRNO ___error
 	%define SYM(x) _ %+ x
 	%define SYM_SYSCALL(x) _ %+ x
 %elifidn __OUTPUT_FORMAT__, elf64
-	extern __errno_location  ; Linux with PLT
+	section .note.GNU-stack
+	extern __errno_location
 	%define GET_ERRNO __errno_location wrt ..plt
 	%define SYM(x) x
 	%define SYM_SYSCALL(x) x wrt ..plt
@@ -73,7 +73,7 @@ SYM(ft_list_push_front):
 	ret
 
 ; rdi *list
-ft_list_size:
+SYM(ft_list_size):
 	mov r8, rdi; cur
 	mov rax, 0
 .loop_cond:

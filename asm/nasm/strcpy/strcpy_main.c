@@ -7,6 +7,7 @@
 // include nul terminator when copying, no len check on dst, return dst
 extern char *ft_strcpy(char *dst, const char *src);
 
+#ifdef __APPLE__
 static jmp_buf jump_buffer;
 
 static void signal_handler_ill(int signum)
@@ -23,13 +24,11 @@ static void signal_handler_bus(int signum)
 		longjmp(jump_buffer, 1);
 	}
 }
+#endif
 
 int main()
 {
-	char *libc_sigbus = "\0";
-	char libc_sigill[1];
 	char libc_big_buf[254];
-	char libc_small_buf[15];
 	char libc_sufficient_buf[16];
 	char *libc_bigger = strdup("somebiggerthing");
 
@@ -42,6 +41,10 @@ int main()
 	strcpy(libc_sufficient_buf, libc_bigger);
 	// strings have the same contents
 	assert(strncmp(libc_sufficient_buf, libc_bigger, sizeof(libc_sufficient_buf)) == 0);
+	#ifdef __APPLE__
+	char *libc_sigbus = "\0";
+	char libc_sigill[1];
+	char libc_small_buf[15];
 	signal(SIGILL, signal_handler_ill);
 	if (setjmp(jump_buffer) == 0)
 	{
@@ -57,6 +60,7 @@ int main()
 		fprintf(stderr, "strcpy did not sigbus!\n");
 		abort();
 	}
+	#endif
 	free(libc_bigger);
 	char my_big_buf[254];
 	char my_sufficient_buf[16];

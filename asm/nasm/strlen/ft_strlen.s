@@ -1,13 +1,13 @@
-section .text
-
 %ifidn __OUTPUT_FORMAT__, macho64
 	%define SYM(x) _ %+ x
 %elifidn __OUTPUT_FORMAT__, elf64
+	section .note.GNU-stack
 	%define SYM(x) x
 %else
 	%error "Unsupported output format"
 %endif
 
+section .text
 global SYM(ft_strlen)
 
 ; input in rdi only
@@ -27,5 +27,3 @@ SYM(ft_strlen):
 .done:
 	; return value is already at rax
 	ret
-
-section .note.GNU-stack noalloc noexec nowrite progbits

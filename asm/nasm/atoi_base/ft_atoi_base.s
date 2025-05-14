@@ -1,22 +1,21 @@
-section .text
-
 %ifidn __OUTPUT_FORMAT__, macho64
 	%define SYM(x) _ %+ x
 	%define SYM_SYSCALL(x) _ %+ x
 %elifidn __OUTPUT_FORMAT__, elf64
+	section .note.GNU-stack
 	%define SYM(x) x
 	%define SYM_SYSCALL(x) x wrt ..plt
 %else
 	%error "Unsupported output format"
 %endif
 
+section .text
+
 extern SYM(ft_strlen)
 global SYM(ft_atoi_base)
 global SYM(my_isspace)
 global SYM(check_base)
 global SYM(check_plus_minus)
-
-; %include "macros.s"
 
 ; Whitespace characters in ASCII are:
 ; - Space (32: 0x20)
@@ -194,5 +193,3 @@ SYM(ft_atoi_base):
 	pop rbp ; restore base ptr
 	xor rax, rax
 	ret
-
-section .note.GNU-stack noalloc noexec nowrite progbits
