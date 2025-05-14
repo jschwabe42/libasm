@@ -60,7 +60,12 @@ void print_dbg_list(t_list *cur) {
 extern t_list	*ft_create_elem(void *data);// @note testing only!
 extern void		*ft_list_push_front(t_list **begin_list, void *data);
 extern int		ft_list_size(t_list *begin_list);
-extern int		ft_list_sort(t_list** lst, int (*cmp)(void *, void *));
+extern void		ft_list_sort(t_list** lst, int (*cmp)(void *, void *));
+
+#define CMP_INLINE_SORT
+#ifdef CMP_INLINE_SORT
+extern void		ft_list_sort_fn_calls(t_list** lst, int (*cmp)(void *, void *));
+#endif
 // extern void	ft_list_remove_if(t_list **begin_list, void *data_ref, int (*cmp)(void *, void *), void (*free_fct)(void *));
 
 // @audit-info testing utils
@@ -163,7 +168,16 @@ void	test_list_sort() {
 	fprintf((stderr), "DBL: **%p has - *%p\n", dbl_ptr, *dbl_ptr);
 	fprintf((stderr), "first elem: %d at %p in - *%p\n", *(int *)((*dbl_ptr)->data), ((*dbl_ptr)->data), *dbl_ptr);
 	fprintf((stderr), "second elem: %d at %p in %p - next: %p\n", *(int *)((*dbl_ptr)->next->data), ((*dbl_ptr)->next->data), ((*dbl_ptr)->next),(*dbl_ptr)->next->next);
-	fprintf(stderr, "result of cmp: %d\n", ft_list_sort(dbl_ptr, cmp_bubble));
+	#ifdef CMP_INLINE_SORT
+	ft_list_sort_fn_calls(dbl_ptr, cmp_bubble);
+	print_list(*dbl_ptr, "fn_calls");
+	ft_list_sort(dbl_ptr, not_cmp);
+	print_list(*dbl_ptr, "rev non-fn_calls");
+	ft_list_sort(dbl_ptr, cmp_bubble);
+	print_list(*dbl_ptr, "sort non-fn_calls");
+	#else
+	ft_list_sort(dbl_ptr, cmp_bubble);
+	#endif
 	assert(((*dbl_ptr)->next) != NULL);
 	assert(((*dbl_ptr)->next->next) != NULL);
 	fprintf((stderr), "DBL: **%p\n", dbl_ptr);
@@ -181,7 +195,12 @@ void	test_list_sort() {
 		check_sorted = check_sorted->next;
 	}
 	assert(not_cmp(&arr[0], &arr[1]) < 0);
+	#ifdef CMP_INLINE_SORT
+	ft_list_sort_fn_calls(dbl_ptr, not_cmp);
+	print_list(*dbl_ptr, "fn_calls: unsort");
+	#else
 	ft_list_sort(dbl_ptr, not_cmp);
+	#endif
 	t_list	*re_unordered = *dbl_ptr;
 	for (int i = 0; i < 5; i++) {
 		assert(arr[i] == *(int *)re_unordered->data);
