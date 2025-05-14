@@ -1,3 +1,5 @@
+; @remind for demo only
+
 default rel
 
 section .data
