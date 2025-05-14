@@ -171,21 +171,20 @@ _ft_list_remove_if:
 	; get prev->next
 	pop qword [r13 + NEXT_OFFSET]; into prev->next: next
 	mov r12, [r13 + NEXT_OFFSET]
-	jmp .loop_next
+	jmp .loop_cond
 .rmfirst_reset_begin:
-	; @audit lea?
+	lea r9, qword [rsp + 32]; ***list/addr of **list
+	pop qword r8; next
 	; *list = next
-	mov r9, [rsp + 24]; **list
-	pop r8; next
-	mov [r9], r8
+	mov rdi, [r9]
+	mov [rdi], r8
 	; cur = *list
-	mov r12, [r9]
-	jmp .loop_next
+	mov r12, r8
+	jmp .loop_cond
 .advance:
 	; prev = cur
 	; cur = cur->next
 	mov r9, r12; tmp (cur)
 	mov r13, r9; prev = tmp
 	mov r12, [r9 + NEXT_OFFSET]; cur = tmp->next
-.loop_next:
 	jmp .loop_cond

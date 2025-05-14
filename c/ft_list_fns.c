@@ -104,6 +104,11 @@ int	is_modulo(void *ptr_a, void *ptr_b) {
 	return a % b != 0;
 }
 
+int	is_odd(void *ptr_a, void *ptr_b) {
+	(void)ptr_b;
+	return (*(int *)ptr_a % 2 == 0);
+}
+
 void	ft_list_remove_if(t_list **begin_list, void *data_ref, int (*cmp)(void *, void *), void (*free_fct)(void *));
 void	free_nothing(void *sth) {
 	(void)sth;
@@ -161,7 +166,7 @@ void	test_list_sort_remove() {
 		assert(arr[i] == *(int *)re_unordered->data);
 		re_unordered = re_unordered->next;
 	}
-	#define A
+	#define D
 	#ifdef A // A: should only remove even
 	fprintf(stderr, "removing even numbers\n");
 	ft_list_remove_if(dbl_ptr, &arr_ordered[1]/* 2 */, is_modulo, free_nothing);
@@ -169,6 +174,12 @@ void	test_list_sort_remove() {
 	assert(*(int *)(*dbl_ptr)->next->data == 3);
 	assert(*(int *)(*dbl_ptr)->next->next->data == 1);
 	assert((*dbl_ptr)->next->next->next == NULL);
+	#elif defined(D) // D: should only remove odd
+	ft_list_remove_if(dbl_ptr, &arr_ordered[1]/* 2 */, is_odd, free_nothing);
+	fprintf(stderr, "removing odd numbers\n");
+	assert(*(int *)(*dbl_ptr)->data == 4);
+	assert(*(int *)(*dbl_ptr)->next->data == 2);
+	assert((*dbl_ptr)->next->next == NULL);
 	#elif defined (B) // B: remove last 2, become 543
 	ft_list_remove_if(dbl_ptr, &arr_ordered[0], cmp_is_equal_or_data_null, free_nothing);
 	ft_list_remove_if(dbl_ptr, &arr_ordered[1], cmp_is_equal_or_data_null, free_nothing);
@@ -180,6 +191,7 @@ void	test_list_sort_remove() {
 	ft_list_remove_if(dbl_ptr, NULL, cmp_is_equal_or_data_null, free_nothing);
 	assert((*dbl_ptr) == NULL);
 	#endif
+	print_list(*dbl_ptr, "*dbl_ptr");
 	int max_val = ft_list_size(*dbl_ptr);
 	t_list	*only_odd = *dbl_ptr;
 	fprintf(stderr, "\n");
