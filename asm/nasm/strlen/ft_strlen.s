@@ -1,8 +1,17 @@
+%ifidn __OUTPUT_FORMAT__, macho64
+	%define SYM(x) _ %+ x
+%elifidn __OUTPUT_FORMAT__, elf64
+	section .note.GNU-stack
+	%define SYM(x) x
+%else
+	%error "Unsupported output format"
+%endif
+
 section .text
-global _ft_strlen
+global SYM(ft_strlen)
 
 ; input in rdi only
-_ft_strlen:
+SYM(ft_strlen):
 	; set return value
 	xor rax, rax
 .loop:

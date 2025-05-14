@@ -1,29 +1,41 @@
 default rel
 
-extern _malloc
-extern ___error
-
 section .data
 	ELEM_SIZE equ 16
 	NEXT_OFFSET equ 8
 
+%ifidn __OUTPUT_FORMAT__, macho64
+	extern ___error
+	%define GET_ERRNO ___error
+	%define SYM(x) _ %+ x
+	%define SYM_SYSCALL(x) _ %+ x
+%elifidn __OUTPUT_FORMAT__, elf64
+	section .note.GNU-stack
+	extern __errno_location
+	%define GET_ERRNO __errno_location wrt ..plt
+	%define SYM(x) x
+	%define SYM_SYSCALL(x) x wrt ..plt
+%else
+	%error "Unsupported output format"
+%endif
+
 section .text
-; extern _print_dbg_list
-global _ft_create_elem
-global _ft_list_push_front
-global _ft_list_remove_if
-global _ft_list_size
-global _ft_list_sort
-extern _puts
-extern _free
+
+global SYM(ft_create_elem)
+global SYM(ft_list_push_front)
+global SYM(ft_list_remove_if)
+global SYM(ft_list_size)
+global SYM(ft_list_sort)
+extern SYM(free)
+extern SYM(malloc)
 
 ; input in rdi: data ptr
 ; return t_list *self
-_ft_create_elem:
+SYM(ft_create_elem):
 	enter 0, 0
 	push rdi
 	mov rdi, ELEM_SIZE
-	call _malloc
+	call SYM_SYSCALL(malloc)
 	test rax, rax
 	jz .error_malloc
 	; rax has 16 bytes
@@ -32,7 +44,7 @@ _ft_create_elem:
 	leave
 	ret
 .error_malloc:
-	call ___error
+	call GET_ERRNO
 	mov qword [rax], 12; ENOMEM
 	xor rax, rax
 	leave
@@ -40,12 +52,12 @@ _ft_create_elem:
 
 ; rdi: **list
 ; rsi: *data
-_ft_list_push_front:
+SYM(ft_list_push_front):
 	enter 0, 0
 	push qword rdi; [rsp]
 .elem_node:
 	mov rdi, rsi
-	call _ft_create_elem; *new
+	call SYM(ft_create_elem); *new
 	test rax, rax
 	; rax contains ptr to new
 	; [rax] data
@@ -61,7 +73,7 @@ _ft_list_push_front:
 	ret
 
 ; rdi *list
-_ft_list_size:
+SYM(ft_list_size):
 	mov r8, rdi; cur
 	mov rax, 0
 .loop_cond:
@@ -78,7 +90,7 @@ _ft_list_size:
 
 ; rdi **list
 ; rsi (*cmp)
-_ft_list_sort:
+SYM(ft_list_sort):
 	enter 0, 0
 	; preserve registers: callee-save
 	push qword r14
@@ -129,7 +141,7 @@ _ft_list_sort:
 ; rsi: data_ref *
 ; rdx: cmp
 ; rcx: free_fct (cur->data)
-_ft_list_remove_if:
+SYM(ft_list_remove_if):
 	enter 0, 0
 	; preserve callee-save
 	push qword r12
@@ -158,7 +170,7 @@ _ft_list_remove_if:
 	mov rdi, [r12]
 	call [rsp + 8]; free_fct on cur->data
 	mov rdi, r12; setup: free cur (node)
-	call _free
+	call SYM_SYSCALL(free)
 	test r13, r13
 	jz .rmfirst_reset_begin
 .rm_nonfirst_update_prev:

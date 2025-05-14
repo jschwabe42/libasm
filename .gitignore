@@ -6,3 +6,6 @@
 stuff.md
 *.txt
 *.dSYM/
+.vscode/
+*.o
+

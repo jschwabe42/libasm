@@ -1,5 +1,5 @@
 NAME = libasm.a
-SRC = strlen strcmp strcpy write
+SRC = strlen strcmp strcpy write read strdup
 B_SRC = atoi_base linked_list
 ASM = $(foreach src,$(SRC),$(src)/ft_$(src).s)
 OBJ = $(foreach src,$(SRC),$(src)/ft_$(src).o)

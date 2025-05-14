@@ -87,10 +87,21 @@ void test_whitespace_handling() {
 }
 
 void test_isspace() {
+	#ifdef __APPLE__
 	for (int i = 0; i < 256; i++) {
 		// printf("'%c'\n", (char)i);
 		assert(my_isspace(i) == isspace(i));
 	}
+	#else
+	// windows based libc has different isspace!
+	for (int i = 0; i < 9; i++) {
+		assert(my_isspace(i) == 0);
+	}
+	for (int i = 9; i < 14; i++) {
+		assert(my_isspace(i) == 1);
+	}
+	assert(my_isspace(32) == 1);
+	#endif
 	printf("✅ isspace tests passed\n\n");
 }
 

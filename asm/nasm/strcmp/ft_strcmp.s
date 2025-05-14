@@ -1,8 +1,18 @@
+%ifidn __OUTPUT_FORMAT__, macho64
+	%define SYM(x) _ %+ x
+%elifidn __OUTPUT_FORMAT__, elf64
+	section .note.GNU-stack
+	%define SYM(x) x
+%else
+	%error "Unsupported output format"
+%endif
+
+
 section .text
-global _ft_strcmp
+global SYM(ft_strcmp)
 
 ; input in rdi, rsi
-_ft_strcmp:
+SYM(ft_strcmp):
 	xor rax, rax
 .loop:
 	; move and then test: store to allow for cmp

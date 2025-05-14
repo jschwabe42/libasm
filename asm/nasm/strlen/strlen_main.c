@@ -3,6 +3,7 @@
 #include <string.h>
 #include <setjmp.h>
 #include <stdio.h>
+#include <signal.h>
 
 extern size_t ft_strlen(const char *str);
 
@@ -10,7 +11,7 @@ static jmp_buf jump_buffer;
 
 static void signal_handler(int signum)
 {
-	if (signum == SIGSEGV)
+	if (signum == 11)
 	{
 		longjmp(jump_buffer, 1);
 	}
@@ -23,7 +24,7 @@ int main()
 	assert(strlen(src) == len);
 	assert(strlen("") == ft_strlen(""));
 
-	signal(SIGSEGV, signal_handler);
+	signal(11, signal_handler);
 
 	if (setjmp(jump_buffer) == 0)
 	{

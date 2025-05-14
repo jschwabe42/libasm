@@ -1,8 +1,17 @@
+%ifidn __OUTPUT_FORMAT__, macho64
+	%define SYM(x) _ %+ x
+%elifidn __OUTPUT_FORMAT__, elf64
+	section .note.GNU-stack
+	%define SYM(x) x
+%else
+	%error "Unsupported output format"
+%endif
+
 section .text
-global _ft_strcpy
+global SYM(ft_strcpy)
 
 ; input in rdi, rsi
-_ft_strcpy:
+SYM(ft_strcpy):
 	; save dest (rdi) on stack
 	push rdi
 .loop:

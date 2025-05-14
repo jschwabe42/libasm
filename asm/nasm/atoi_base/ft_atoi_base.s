@@ -1,12 +1,21 @@
+%ifidn __OUTPUT_FORMAT__, macho64
+	%define SYM(x) _ %+ x
+	%define SYM_SYSCALL(x) _ %+ x
+%elifidn __OUTPUT_FORMAT__, elf64
+	section .note.GNU-stack
+	%define SYM(x) x
+	%define SYM_SYSCALL(x) x wrt ..plt
+%else
+	%error "Unsupported output format"
+%endif
+
 section .text
 
-extern _ft_strlen
-global _ft_atoi_base
-global _my_isspace
-global _check_base
-global _check_plus_minus
-
-; %include "macros.s"
+extern SYM(ft_strlen)
+global SYM(ft_atoi_base)
+global SYM(my_isspace)
+global SYM(check_base)
+global SYM(check_plus_minus)
 
 ; Whitespace characters in ASCII are:
 ; - Space (32: 0x20)
@@ -18,7 +27,7 @@ global _check_plus_minus
 ; we can check other than space others by subtraction:
 ; c - 9 < 5 or c == 32
 ; rdi contains character byte (8-bit) - dil has lowest byte
-_my_isspace:
+SYM(my_isspace):
 	; check for space
 	cmp dil, 0x20 ; 32 on ascii table
 	jne .other_whitespace
@@ -33,7 +42,7 @@ _my_isspace:
 	ret
 
 ; rdi: char byte - 1 on found
-_check_plus_minus:
+SYM(check_plus_minus):
 	mov rax, 1
 	cmp dil, 0x2B ; '+'
 	je .return
@@ -44,15 +53,15 @@ _check_plus_minus:
 
 ; rdi: char byte
 check_non_pfx:
-	call _check_plus_minus
+	call SYM(check_plus_minus)
 	test rax, rax
 	jnz .return ; rax != 0
-	call _my_isspace
+	call SYM(my_isspace)
 .return:
 	ret
 
 ; rdi: base, rsi: length 
-_check_base:
+SYM(check_base):
 	xor r8, r8
 	mov rdx, rdi ; rdx: base
 .loop_outer_precond:
@@ -86,7 +95,7 @@ _check_base:
 
 ; rdi, rsi, rdx, rcx: call with str, base, base_len, sign
 convert:
-	enter 8, 1
+	enter 8, 0
 	mov [rbp - 8], qword rdi ; opt1: `push rbx`, `mov rbx, rdi` (callee-save)
 	xor r8, r8 ; initialize total (rax busy)
 	jmp .loop_convert_cond
@@ -103,7 +112,7 @@ convert:
 	test dil, dil
 	jz .do_return ; end of str!
 .loop_convert_outer:
-	call _my_isspace ; rdi is preserved !
+	call SYM(my_isspace) ; rdi is preserved !
 	test rax, rax
 	jz .loop_inner_init; pcond: rax == 0
 	setz al
@@ -131,25 +140,25 @@ convert:
 	ret
 
 ; rdi: str, rsi: base
-_ft_atoi_base:
+SYM(ft_atoi_base):
 	enter 0, 0 ; prologue
 	push rbx ; backup: callee-save rbx
 	push rsi ; base tmp1
 	mov rbx, rdi ; str at rbx
 .base_len:
 	mov rdi, rsi
-	call _ft_strlen
+	call SYM(ft_strlen)
 	cmp rax, 2
 	jl .ret_zero ; base is less than 2 characters
 .validate_base:
 	mov rsi, rax
 	; rdi: base, rsi: length 
-	call _check_base
+	call SYM(check_base)
 	test rax, rax
 	jnz .ret_zero ; base checks failed
 .skip_ws:
 	movzx rdi, byte [rbx] ; byte at current address index
-	call _my_isspace
+	call SYM(my_isspace)
 	test rax, rax
 	jz .check_prefix ; zero: no more prefix
 	inc rbx

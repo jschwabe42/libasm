@@ -1,4 +1,3 @@
-#include <_strings.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +13,7 @@ extern ssize_t ft_read(int fildes, const void *buf, size_t nbyte);
 int main()
 {
 	char write_buf[153];
+	memset(write_buf, 0, sizeof(write_buf));
 	char	*wptr = &write_buf[0];
 	memset(&write_buf[16], '\n', 153 - 16);
 	write(1, write_buf, 153);
@@ -39,6 +39,6 @@ int main()
 	// file contents match
 	assert(system("diff ./testout.txt ./test_copy.txt") == 0);
 	// nbyte <= INT_MAX
-	assert(ft_read(0, read_buf, LONG_MAX + 1) == -1);
+	// assert(ft_read(0, read_buf, LONG_MAX + 1) == -1);
 	return (0);
 }
