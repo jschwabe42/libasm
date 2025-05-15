@@ -3,9 +3,7 @@ use std::path::PathBuf;
 
 fn main() {
 	// Path to the directory containing your static library
-	let lib_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap())
-		.join("asm")
-		.join("nasm");
+	let lib_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap()).join("nasm");
 
 	// Tell cargo to look for libraries in the specified directory
 	println!("cargo:rustc-link-search=native={}", lib_dir.display());
@@ -20,8 +18,8 @@ fn main() {
 	let status = std::process::Command::new("make")
 		.arg("bonus")
 		.current_dir(lib_dir)
-		.env("CFLAGS", format!("-arch {}", "x86_64"))
-		.env("ASFLAGS", format!("-arch {}", "x86_64"))
+		.env("CFLAGS", "-arch x86_64")
+		.env("ASFLAGS", "-arch x86_64")
 		.status()
 		.expect("Failed to build libasm.a");
 
