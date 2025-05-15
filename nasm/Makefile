@@ -25,10 +25,10 @@ B_OBJ_FILES	= $(patsubst %.s,$(OBJ_DIR)/%.o,$(B_SRC_FILES))
 CC = clang
 
 # link to libasm.a
-bin: $(NAME)
-	$(CC) $(ARCH) linkable_binary.c -L. -lasm -o linkable_binary.out
 all: $(NAME)
-
+bin:
+	$(MAKE) bonus
+	$(CC) $(ARCH) linkable_binary.c -L. -lasm -o linkable_binary.out 2>/dev/null
 $(OBJ_DIR)/%.o: %.s | $(OBJ_DIR)
 	@mkdir -p $(dir $@)
 	nasm -f $(FORMAT) -o $@ $<
@@ -57,13 +57,16 @@ test_mains: $(OBJ_FILES) $(B_OBJ_FILES)
 # Clean up compiled files
 clean:
 	rm -rf $(BUILD_DIR)
-	for src in $(SRC) $(B_SRC); do \
-		rm -f $$src/test_$$src.out; \
+	@set -e; for src in $(SRC) $(B_SRC); do \
+		rm -f $$src/*.o; \
 	done
 
 # Clean up compiled files and the library
 fclean: clean
 	rm -f $(NAME)
+	@set -e; for src in $(SRC) $(B_SRC); do \
+		rm -f $$src/test_$$src.out; \
+	done
 
 # Rebuild everything
 re: fclean all
