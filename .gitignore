@@ -1,4 +1,4 @@
-/target
+use-from-rust/target
 *.o
 *.a
 *.out

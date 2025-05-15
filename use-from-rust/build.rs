@@ -3,7 +3,9 @@ use std::path::PathBuf;
 
 fn main() {
 	// Path to the directory containing your static library
-	let lib_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap()).join("nasm");
+	let lib_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap())
+		.join("..")
+		.join("nasm");
 
 	// Tell cargo to look for libraries in the specified directory
 	println!("cargo:rustc-link-search=native={}", lib_dir.display());
@@ -12,7 +14,7 @@ fn main() {
 	println!("cargo:rustc-link-lib=static=asm");
 
 	// Only rerun the build script if Makefile changes
-	println!("cargo:rerun-if-changed=asm/nasm/Makefile");
+	println!("cargo:rerun-if-changed=../nasm/Makefile");
 
 	// Build the library from Rust with the correct architecture flag
 	let status = std::process::Command::new("make")
