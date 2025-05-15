@@ -1,13 +1,15 @@
 #!/bin/sh
 
 if [ "$(uname)" = "Darwin" ]; then
-	nasm -Werror -f macho64 ft_linked_list.s -o ft_linked_list.o
-	# nasm -Werror -f macho64 sort_fn_calls.s -o sort_fn_calls.o
-	clang -Wall -Wextra -Werror -arch x86_64 -c linked_list_main.c -o main.o
-	clang -Wall -Wextra -Werror -arch x86_64 main.o ft_linked_list.o -o test_linked_list.out
-	# clang -Wall -Wextra -Werror -arch x86_64 main.o sort_fn_calls.o ft_linked_list.o -o test_linked_list.out
+FORMAT="macho64"
+ARCH="-arch x86_64"
 elif [ "$(uname)" = "Linux" ]; then
-	nasm -Werror -f elf64 ft_linked_list.s -o ft_linked_list.o
-	clang -Wall -Wextra -Werror -c linked_list_main.c -o main.o
-	clang -Wall -Wextra -Werror main.o ft_linked_list.o -o test_linked_list.out
+FORMAT="elf64"
+ARCH=""
 fi
+
+nasm -Werror -f ${FORMAT} ft_linked_list.s -o ft_linked_list.o
+# nasm -Werror -f ${FORMAT} sort_fn_calls.s -o sort_fn_calls.o
+cc -Wall -Wextra -Werror ${ARCH} -c linked_list_main.c -o main.o
+cc -Wall -Wextra -Werror ${ARCH} main.o ft_linked_list.o -o test_linked_list.out
+# clang -Wall -Wextra -Werror ${ARCH} main.o sort_fn_calls.o ft_linked_list.o -o test_linked_list.out
