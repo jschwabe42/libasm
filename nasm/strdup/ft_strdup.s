@@ -13,10 +13,9 @@
 	%error "Unsupported output format"
 %endif
 
-
+extern SYM(malloc)
 extern SYM(ft_strcpy)
 extern SYM(ft_strlen)
-extern SYM(malloc)
 
 section .text
 global SYM(ft_strdup)

@@ -19,15 +19,15 @@ section .data
 	%error "Unsupported output format"
 %endif
 
-section .text
+extern SYM(free)
+extern SYM(malloc)
 
+section .text
 global SYM(ft_create_elem)
 global SYM(ft_list_push_front)
 global SYM(ft_list_remove_if)
 global SYM(ft_list_size)
 global SYM(ft_list_sort)
-extern SYM(free)
-extern SYM(malloc)
 
 ; input in rdi: data ptr
 ; return t_list *self

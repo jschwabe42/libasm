@@ -7,7 +7,6 @@
 	%error "Unsupported output format"
 %endif
 
-
 section .text
 global SYM(ft_strcmp)
 
