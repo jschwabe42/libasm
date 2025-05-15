@@ -10,4 +10,4 @@ fi
 
 nasm -Werror -f ${FORMAT} ft_read.s -o ft_read.o
 cc -Wall -Wextra -Werror ${ARCH} -c read_main.c -o main.o
-cc -Wall -Wextra -Werror ${ARCH} main.o ft_read.o -o test_read.out
+cc -Wall -Wextra -Werror ${ARCH} main.o ft_read.o -o test_read.out  2>/dev/null #suppress warning

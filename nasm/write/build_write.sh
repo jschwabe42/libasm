@@ -10,4 +10,4 @@ fi
 
 nasm -Werror -f ${FORMAT} ft_write.s -o ft_write.o
 cc -Wall -Wextra -Werror ${ARCH} -c write_main.c -o main.o
-cc -Wall -Wextra -Werror ${ARCH} main.o ft_write.o -o test_write.out
+cc -Wall -Wextra -Werror ${ARCH} main.o ft_write.o -o test_write.out  2>/dev/null #suppress warning
