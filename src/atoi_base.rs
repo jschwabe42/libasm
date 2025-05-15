@@ -13,9 +13,7 @@ fn atoi_base(str: &[u8], base: &[u8]) -> i64 {
 		return 0;
 	}
 	for (index, &b_char) in base.iter().enumerate() {
-		if b_char.is_ascii_whitespace()
-			|| base[index + 1..].contains(&b_char)
-		{
+		if b_char.is_ascii_whitespace() || base[index + 1..].contains(&b_char) {
 			return 0;
 		}
 	}

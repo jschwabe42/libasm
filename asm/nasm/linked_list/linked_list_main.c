@@ -67,7 +67,7 @@ adds a new element (t_list) to the beginning of the list
 - It should assign data to the given argument.
 - If necessary, it will update the pointer at the beginning of the list.
 */
-extern void		*ft_list_push_front(t_list **begin_list, void *data);
+extern void		ft_list_push_front(t_list **begin_list, void *data);
 extern int		ft_list_size(t_list *begin_list);
 
 /*

@@ -18,6 +18,7 @@ fn main() {
 
 	// Build the library from Rust with the correct architecture flag
 	let status = std::process::Command::new("make")
+		.arg("bonus")
 		.current_dir(lib_dir)
 		.env("CFLAGS", format!("-arch {}", "x86_64"))
 		.env("ASFLAGS", format!("-arch {}", "x86_64"))
