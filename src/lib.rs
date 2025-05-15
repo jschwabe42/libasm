@@ -1,7 +1,5 @@
 #![feature(extern_types)]
 
-mod atoi_base;
-
 mod mandatory {
 	#[cfg(test)]
 	#[link(name = "asm", kind = "static")]
