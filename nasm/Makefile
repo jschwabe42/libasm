@@ -5,6 +5,9 @@ ASM = $(foreach src,$(SRC),$(src)/ft_$(src).s)
 OBJ = $(foreach src,$(SRC),$(src)/ft_$(src).o)
 M_OBJ = $(foreach src,$(SRC),$(src)/main.o)
 
+# link to libasm.a
+bin: $(NAME)
+	cc -arch x86_64 linkable_binary.c -L. -lasm -o linkable_binary.out
 all: $(NAME)
 # @remind (relinking) bonus rule for part - nothing is forbidden in main part, naming conventions do not apply for .s
 # @audit-ok malloc only in list functions & strdup implementation
