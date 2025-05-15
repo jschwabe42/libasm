@@ -9,9 +9,9 @@
 	%error "Unsupported output format"
 %endif
 
-section .text
-
 extern SYM(ft_strlen)
+
+section .text
 global SYM(ft_atoi_base)
 global SYM(my_isspace)
 global SYM(check_base)
