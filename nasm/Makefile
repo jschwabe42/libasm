@@ -41,7 +41,7 @@ $(OBJ_DIR):
 # @remind bonus rule same name: will always run ar, for part - nothing is forbidden in main part, naming conventions do not apply for .s
 # @audit-ok malloc only in list functions & strdup implementation
 # @audit-ok testing main has to be able to "compile" with the "library to show that it’s functional": not needed in makefile - link from anywhere
-# @audit Your code must set the variable errno properly.
+# @audit-ok errno gets set in all functions doing syscalls + malloc
 $(NAME): $(OBJ_FILES)
 	ar rcs $(NAME) $^
 bonus: $(B_OBJ_FILES) $(OBJ_FILES) 
