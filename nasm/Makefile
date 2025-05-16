@@ -28,10 +28,10 @@ CC = clang
 all: $(NAME)
 bin:
 	$(MAKE) bonus
-	$(CC) $(ARCH) linkable_binary.c -L. -lasm -o linkable_binary.out 2>/dev/null
+	$(CC) -Wall -Wextra -Werror $(ARCH) linkable_binary.c -L. -lasm -o linkable_binary.out
 $(OBJ_DIR)/%.o: %.s | $(OBJ_DIR)
 	@mkdir -p $(dir $@)
-	nasm -f $(FORMAT) -o $@ $<
+	nasm -Wall -f $(FORMAT) -o $@ $<
 
 # Create all necessary directories
 $(OBJ_DIR):
@@ -63,7 +63,7 @@ clean:
 
 # Clean up compiled files and the library
 fclean: clean
-	rm -f $(NAME)
+	rm -f $(NAME) *.out
 	@set -e; for src in $(SRC) $(B_SRC); do \
 		rm -f $$src/test_$$src.out; \
 	done
