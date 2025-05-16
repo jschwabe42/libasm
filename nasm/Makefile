@@ -49,7 +49,7 @@ bonus: $(B_OBJ_FILES) $(OBJ_FILES)
 
 # run each c testing main file using their scripts
 test_mains: $(OBJ_FILES) $(B_OBJ_FILES)
-	@set -e; for src in $(SRC) $(B_SRC); do \
+	for src in $(SRC) $(B_SRC); do \
 		echo "Testing $$src"; \
 		(cd $$src && bash ./build_$$src.sh && ./test_$$src.out); \
 	done
