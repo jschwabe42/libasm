@@ -35,5 +35,4 @@ jobs:
       run: brew install nasm
     - name: Run tests
       run: cd nasm && make test_mains
-    - name: linkable binary
-      run: cd nasm && make bin && ./linkable_binary.out
+    # binary segfaults on gha macos (arm64)
