@@ -1,0 +1,37 @@
+name: c_binaries
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test-linux:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: add nasm
+      run: sudo apt-get install -y nasm
+    - name: Run tests
+      run: cd nasm && make test_mains
+    - name: linkable binary
+      run: cd nasm && make bin && ./linkable_binary.out
+  test-macos:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: add nasm
+      run: brew install nasm
+    - name: Run tests
+      run: cd nasm && make test_mains
+    - name: linkable binary
+      run: cd nasm && make bin && ./linkable_binary.out
