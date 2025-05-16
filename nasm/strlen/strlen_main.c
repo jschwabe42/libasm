@@ -24,6 +24,7 @@ int main()
 	assert(strlen(src) == len);
 	assert(strlen("") == ft_strlen(""));
 
+	// will result in valgrind: Address 0x0 is not stack'd, malloc'd or (recently) free'd
 	signal(11, signal_handler);
 
 	if (setjmp(jump_buffer) == 0)
