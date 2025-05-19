@@ -18,7 +18,7 @@ SYM(ft_strcpy):
 	mov al, [rsi]
 	mov [rdi], al
 	; test rdi for nul terminator (after assignment/termination)
-	test al, al
+	cmp al, 0
 	je .done
 	inc rsi
 	inc rdi

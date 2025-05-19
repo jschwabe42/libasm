@@ -29,14 +29,15 @@ int main()
 	int fildes = open("./testout.txt", O_WRONLY | O_CREAT, 0644);
 	assert(ft_write(fildes, write_buf, 153) != -1);
 	assert(close(fildes) != -1);
-	#ifdef __APPLE__
-	assert(write(1, write_buf, INT_MAX + 1) == -1);
-	#endif
-	char	*strerr = strerror(errno);
-	fprintf(stderr, "Error: %s (errno: %d)\n", strerr, errno);
-	// free(strerr);
-	printf("real EINVAL = %d\n", EINVAL);
-	// fprintf(stderr, "System error message: %s\n", sys_errlist[errno]);
-	perror("");
+	// not working with ubsan
+	// #ifdef __APPLE__
+	// assert(write(1, write_buf, INT_MAX + 1) == -1);
+	// char	*strerr = strerror(errno);
+	// fprintf(stderr, "Error: %s (errno: %d)\n", strerr, errno);
+	// // free(strerr);
+	// printf("real EINVAL = %d\n", EINVAL);
+	// // fprintf(stderr, "System error message: %s\n", sys_errlist[errno]);
+	// perror("");
+	// #endif
 	return (0);
 }

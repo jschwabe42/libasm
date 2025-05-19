@@ -20,5 +20,11 @@ int main()
 	assert(my_empty != NULL);
 	free(my_empty);
 	free(my_data);
+	printf("\nfinal boss!\n");
+	char	*dup = ft_strdup("1e262\0");
+	assert(dup != NULL);
+	printf("\nAll tests passed %s!\n", dup);
+	free(dup);
+	printf("\nAll tests passed! ✅\n");
 	return (0);
 }

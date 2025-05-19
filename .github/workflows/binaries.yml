@@ -27,7 +27,7 @@ jobs:
       run: cd nasm && make bin && ./linkable_binary.out
   test-macos:
 
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
     - uses: actions/checkout@v4
@@ -35,4 +35,6 @@ jobs:
       run: brew install nasm
     - name: Run tests
       run: cd nasm && make test_mains
-    # binary segfaults on gha macos (arm64)
+    # binary segfaults on gha macos (arm64) when not specifying macos-15
+    - name: linkable binary
+      run: cd nasm && make bin && ./linkable_binary.out
