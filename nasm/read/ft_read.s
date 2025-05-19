@@ -26,8 +26,8 @@ SYM(ft_read):
 	ret
 .error_syscall:
 	; save syscall return value set global error variable
-	mov rdx, rax
+	mov edx, eax
 	call GET_ERRNO
-	mov [rax], edx
+	mov dword [rax], edx
 	mov rax, -1
 	ret

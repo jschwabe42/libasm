@@ -7,7 +7,7 @@ mod mandatory {
 		fn ft_strlen(str: *const u8) -> usize;
 		fn ft_strcmp(str1: *const u8, str2: *const u8) -> i32;
 		fn ft_strcpy(dest: *mut u8, src: *const u8) -> *mut u8;
-		// fn ft_strdup(src: *const u8) -> *mut u8;
+		fn ft_strdup(src: *const u8) -> *mut u8;
 		// fn ft_read(fildes: i32, buf: *mut u8, nbyte: usize) -> isize;
 		// fn ft_write(fildes: i32, buf: *const u8, nbyte: usize) -> isize;
 	}
@@ -89,6 +89,17 @@ mod mandatory {
 						)
 					))
 			)
+		}
+	}
+	#[test]
+	fn test_strdup() {
+		unsafe {
+			let dup = ft_strdup(c"1e262".as_ptr().cast());
+			assert!(!dup.is_null());
+			libc::free(dup.cast());
+			let dup = libc::strdup(c"1e262".as_ptr().cast());
+			assert!(!dup.is_null());
+			libc::free(dup.cast());
 		}
 	}
 }

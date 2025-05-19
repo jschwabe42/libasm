@@ -23,6 +23,7 @@ int main()
 	const size_t len = ft_strlen(src);
 	assert(strlen(src) == len);
 	assert(strlen("") == ft_strlen(""));
+	printf("strlen tests passed\n%s\n", src);
 
 	// will result in valgrind: Address 0x0 is not stack'd, malloc'd or (recently) free'd
 	signal(11, signal_handler);

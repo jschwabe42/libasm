@@ -16,12 +16,10 @@ SYM(ft_strlen):
 	xor rax, rax
 .loop:
 	; move and then test
-	mov cl, [rdi + rax]
-	jmp .is_zero
-.is_zero:
-	test cl, cl
+	mov cl, byte [rdi + rax]
+	cmp cl, 0
 	; is zero (nul-terminator)
-	jz .done
+	je .done
 	inc rax
 	jmp .loop
 .done:

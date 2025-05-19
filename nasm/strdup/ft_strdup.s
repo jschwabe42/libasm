@@ -22,6 +22,7 @@ global SYM(ft_strdup)
 
 ; input in rdi
 SYM(ft_strdup):
+	enter 0, 0
 	; assuming non-null ptr to chars, get length in rax
 	push rdi; save input ptr
 	call SYM(ft_strlen)
@@ -35,12 +36,13 @@ SYM(ft_strdup):
 	mov rdi, rax ; provide dest: new allocation
 	pop rsi ; pop input as second param
 	call SYM(ft_strcpy)
+	leave
 	ret
 .error_malloc:
-	pop rdx ; pop input ptr to restore stack
+	leave
 	; handle null return from malloc (error)
 	call GET_ERRNO
-	mov dword [rax], 12 ; ENOMEM
+	mov qword [rax], 12 ; ENOMEM
 	; return null
 	xor rax, rax
 	ret
