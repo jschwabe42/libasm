@@ -12,5 +12,5 @@ ARCH=""
 fi
 
 nasm -Werror -g -f ${FORMAT} ft_strlen.s -o ft_strlen.o
-clang -Wall -Wextra -Werror -g -fsanitize=address,undefined -fno-omit-frame-pointer ${ARCH} -c strlen_main.c -o main.o
-clang -Wall -Wextra -Werror -g -fsanitize=address,undefined -fno-omit-frame-pointer ${ARCH} main.o ft_strlen.o -o test_strlen.out
+gcc -Wall -Wextra -Werror -g ${ARCH} -c strlen_main.c -o main.o
+gcc -Wall -Wextra -Werror -g ${ARCH} main.o ft_strlen.o -o test_strlen.out

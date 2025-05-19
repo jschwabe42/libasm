@@ -12,5 +12,5 @@ ARCH=""
 fi
 
 nasm -Werror -g -f ${FORMAT} ft_strcmp.s -o ft_strcmp.o
-clang -Wall -Wextra -Werror -g -fsanitize=address,undefined -fno-omit-frame-pointer ${ARCH} -c strcmp_main.c -o main.o
-clang -Wall -Wextra -Werror -g -fsanitize=address,undefined -fno-omit-frame-pointer ${ARCH} main.o ft_strcmp.o -o test_strcmp.out
+gcc -Wall -Wextra -Werror -g ${ARCH} -c strcmp_main.c -o main.o
+gcc -Wall -Wextra -Werror -g ${ARCH} main.o ft_strcmp.o -o test_strcmp.out

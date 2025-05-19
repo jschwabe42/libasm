@@ -24,13 +24,13 @@ B_SRC_FILES	= $(foreach src,$(B_SRC),$(src)/ft_$(src).s)
 OBJ_FILES	= $(patsubst %.s,$(OBJ_DIR)/%.o,$(SRC_FILES))
 B_OBJ_FILES	= $(patsubst %.s,$(OBJ_DIR)/%.o,$(B_SRC_FILES))
 
-CC = clang
+CC = gcc
 
 # link to libasm.a
 all: $(NAME)
 bin:
 	$(MAKE) bonus
-	$(CC) -Wall -Wextra -Werror -g -fsanitize=address,undefined -fno-omit-frame-pointer $(ARCH) linkable_binary.c -L. -lasm -o linkable_binary.out
+	$(CC) -Wall -Wextra -Werror -g $(ARCH) linkable_binary.c -L. -lasm -o linkable_binary.out
 $(OBJ_DIR)/%.o: %.s | $(OBJ_DIR)
 	@mkdir -p $(dir $@)
 	nasm -g -Wall -f $(FORMAT) -o $@ $<
@@ -53,7 +53,7 @@ bonus: $(B_OBJ_FILES) $(OBJ_FILES)
 test_mains: $(OBJ_FILES) $(B_OBJ_FILES)
 	for src in $(SRC) $(B_SRC); do \
 		echo "Testing $$src"; \
-		(cd $$src && bash ./build_$$src.sh && ./test_$$src.out); \
+		(cd $$src && bash ./build_$$src.sh && valgrind ./test_$$src.out); \
 	done
 
 # Clean up compiled files

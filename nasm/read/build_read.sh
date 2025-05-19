@@ -12,5 +12,5 @@ ARCH=""
 fi
 
 nasm -Werror -g -f ${FORMAT} ft_read.s -o ft_read.o
-clang -Wall -Wextra -Werror -g -fsanitize=address,undefined -fno-omit-frame-pointer ${ARCH} -c read_main.c -o main.o
-clang -Wall -Wextra -Werror -g -fsanitize=address,undefined -fno-omit-frame-pointer ${ARCH} main.o ft_read.o -o test_read.out
+gcc -Wall -Wextra -Werror -g ${ARCH} -c read_main.c -o main.o
+gcc -Wall -Wextra -Werror -g ${ARCH} main.o ft_read.o -o test_read.out

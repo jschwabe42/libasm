@@ -13,5 +13,5 @@ fi
 
 
 nasm -Werror -g -f ${FORMAT} ft_strcpy.s -o ft_strcpy.o
-clang -Wall -Wextra -Werror -g -fsanitize=address,undefined -fno-omit-frame-pointer ${ARCH} -c strcpy_main.c -o main.o
-clang -Wall -Wextra -Werror -g -fsanitize=address,undefined -fno-omit-frame-pointer ${ARCH} main.o ft_strcpy.o -o test_strcpy.out
+gcc -Wall -Wextra -Werror -g ${ARCH} -c strcpy_main.c -o main.o
+gcc -Wall -Wextra -Werror -g ${ARCH} main.o ft_strcpy.o -o test_strcpy.out
