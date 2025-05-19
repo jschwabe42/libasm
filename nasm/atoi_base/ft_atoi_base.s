@@ -95,9 +95,10 @@ SYM(check_base):
 
 ; rdi, rsi, rdx, rcx: call with str, base, base_len, sign
 convert:
-	enter 8, 0
-	mov [rbp - 8], qword rdi ; opt1: `push rbx`, `mov rbx, rdi` (callee-save)
+	enter 0, 0
 	xor r8, r8 ; initialize total (rax busy)
+	push rdi
+	push rdi
 	jmp .loop_convert_cond
 .loop_sanity_check: ; pcond: rax == 0
 	cmp r9, -1 ; check digit_value has changed
@@ -105,9 +106,9 @@ convert:
 .loop_outer_next:
 	imul r8d, edx
 	add r8d, r9d ; add digit value to result
-	inc qword [rbp - 8]; opt1: `inc rbx`
+	inc qword [rsp]; opt1: `inc rbx`
 .loop_convert_cond:
-	mov rdi, qword [rbp - 8]
+	mov rdi, qword [rsp]
 	movzx rdi, byte [rdi] ; opt1: `movzx rdi, byte [rbx]`
 	test dil, dil
 	jz .do_return ; end of str!
@@ -136,12 +137,14 @@ convert:
 	test ecx, ecx
 	cmovz rax, r8 ; sign zero, restore positive
 .epilogue:
+	mov rdi, [rsp + 8]
 	leave
 	ret
 
 ; rdi: str, rsi: base
 SYM(ft_atoi_base):
 	enter 0, 0 ; prologue
+	push qword rdi
 	push rbx ; backup: callee-save rbx
 	push rsi ; base tmp1
 	mov rbx, rdi ; str at rbx
@@ -158,6 +161,8 @@ SYM(ft_atoi_base):
 	jnz .ret_zero ; base checks failed
 .skip_ws:
 	movzx rdi, byte [rbx] ; byte at current address index
+	cmp rdi, 0
+	je .ret_zero
 	call SYM(my_isspace)
 	test rax, rax
 	jz .check_prefix ; zero: no more prefix
@@ -189,7 +194,6 @@ SYM(ft_atoi_base):
 	ret
 .ret_zero:
 	; option 2: epilogue - pops rsi, rbx
-	mov rsp, rbp ; restore stack ptr
-	pop rbp ; restore base ptr
+	leave
 	xor rax, rax
 	ret

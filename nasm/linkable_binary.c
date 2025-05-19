@@ -29,12 +29,23 @@ int main()
 	// function from mandatory
 	assert(ft_strlen("hello, world") == strlen("hello, world"));
 	// something that does a syscall
-	ft_write(1, "\ngreetings from: write\n\n", 25);
+	ft_write(1, "\ngreetings from: write\n\n", 24);
 	// something that calls malloc
 	char	*dup = ft_strdup("1e262");
 	assert(dup != NULL);
 	// function from bonus (compile with...)
+	fprintf(stderr, "output atoi_base: %d\n", ft_atoi_base(dup, "0123456789abcdef"));
+	assert(strcmp("1e262", dup) == 0);
 	assert(ft_atoi_base(dup, "0123456789abcdef") == 123490);
+	assert(strcmp("1e262", dup) == 0);
+	fprintf(stderr, "dup is still what it should be!\n");
+	// printf("dup! = %s\n", dup);
+	printf("letters in dup\n");
+
+	for (int i = 0; i <= 5; i++) {
+		printf("'%c' (%d)\n", dup[i], (int)dup[i]);
+	}
+	assert(ft_strlen(dup) == 5);
 	free(dup);
 	printf("linkable binary (from c) works!\n");
 }

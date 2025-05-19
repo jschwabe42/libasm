@@ -1,9 +1,11 @@
 NAME = libasm.a
 
 ifeq ($(shell uname -s),Darwin)
-# @follow-up check x86_64 macos compat!
 FORMAT		= macho64
 ARCH		= -arch x86_64
+ifeq ($(shell arch),i386)
+ARCH		= 
+endif
 else
 FORMAT		= elf64
 ARCH		= 
@@ -28,10 +30,10 @@ CC = clang
 all: $(NAME)
 bin:
 	$(MAKE) bonus
-	$(CC) -Wall -Wextra -Werror $(ARCH) linkable_binary.c -L. -lasm -o linkable_binary.out
+	$(CC) -Wall -Wextra -Werror -g -fsanitize=address,undefined -fno-omit-frame-pointer $(ARCH) linkable_binary.c -L. -lasm -o linkable_binary.out
 $(OBJ_DIR)/%.o: %.s | $(OBJ_DIR)
 	@mkdir -p $(dir $@)
-	nasm -Wall -f $(FORMAT) -o $@ $<
+	nasm -Werror -g -f $(FORMAT) -o $@ $<
 
 # Create all necessary directories
 $(OBJ_DIR):

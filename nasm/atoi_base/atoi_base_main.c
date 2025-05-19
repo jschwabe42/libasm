@@ -5,6 +5,8 @@
 #include <stdio.h>
 
 extern int ft_atoi_base(char *str, char *base);
+
+extern char *ft_strdup(const char *src);
 extern int check_base(char *base, size_t length);
 extern int my_isspace(int c);
 extern int check_plus_minus(int c);
@@ -142,6 +144,14 @@ int main() {
 	test_custom_bases();
 	test_whitespace_handling();
 	test_invalid_inputs();
-	printf("\nAll tests passed! ✅\n");
+	// final boss
+	printf("\nfinal boss - github actions weird behaviour!\n");
+	char	*dup = ft_strdup("1e262");
+	assert(dup != NULL);
+	// function from bonus (compile with...)
+	fprintf(stderr, "atoi_base: %d\n", ft_atoi_base(dup, "0123456789abcdef"));
+	assert(ft_atoi_base(dup, "0123456789abcdef") == 123490);
+	free(dup);
+	printf("\natoi_base: All tests passed! ✅\n");
 	return 0;
 }
