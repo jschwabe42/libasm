@@ -35,7 +35,9 @@ SYM(ft_create_elem):
 	enter 0, 0
 	push rdi
 	mov rdi, ELEM_SIZE
+	sub rsp, 8
 	call SYM_SYSCALL(malloc)
+	add rsp, 8
 	test rax, rax
 	jz .error_malloc
 	; rax has 16 bytes
@@ -170,7 +172,9 @@ SYM(ft_list_remove_if):
 	mov rdi, [r12]
 	call [rsp + 8]; free_fct on cur->data
 	mov rdi, r12; setup: free cur (node)
+	sub rsp, 8
 	call SYM_SYSCALL(free)
+	add rsp, 8
 	test r13, r13
 	jz .rmfirst_reset_begin
 .rm_nonfirst_update_prev:
