@@ -30,7 +30,9 @@ SYM(ft_strdup):
 	inc rax
 	; call with rax value
 	mov rdi, rax
+	sub rsp, 8
 	call SYM_SYSCALL(malloc)
+	add rsp, 8
 	test rax, rax
 	jz .error_malloc
 	mov rdi, rax ; provide dest: new allocation
